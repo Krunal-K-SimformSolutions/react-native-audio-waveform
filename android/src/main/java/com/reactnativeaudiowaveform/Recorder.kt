@@ -21,7 +21,7 @@ import java.io.File
 
 class Recorder private constructor(context: Context) {
     private val appContext = context
-    private var ffmpegMode = false
+    private var withFFmpegMode = false
     private var withDebug = false
 
     private lateinit var recorder: AudioRecorder
@@ -39,13 +39,13 @@ class Recorder private constructor(context: Context) {
 
     fun init(
       @NonNull sourceMode: String,
-      @NonNull ffmpeg: Boolean = false,
+      @NonNull isFFmpegMode: Boolean = false,
       @NonNull isDebug: Boolean = false,
       @NonNull config: AudioRecordConfig,
       @NonNull convertConfig: FFmpegConvertConfig
     ): Recorder {
-      this.ffmpegMode = ffmpeg
       this.withDebug = isDebug
+      this.withFFmpegMode = isFFmpegMode
       this.recorder = AudioRecorder()
 
       this.config = config
@@ -66,6 +66,7 @@ class Recorder private constructor(context: Context) {
         sourceFilePath = appContext.recordFile(filePath)
 
         recorder.create(FFmpegRecordFinder::class.java) {
+            this.ffmpegMode = withFFmpegMode
             this.destFile = sourceFilePath
             this.recordConfig = config
             this.audioSource = source
@@ -75,7 +76,7 @@ class Recorder private constructor(context: Context) {
             this.debugMode = withDebug
         }
 
-        if (ffmpegMode) {
+        if (withFFmpegMode) {
             val ffmpegRecorder: FFmpegAudioRecorder =
                 recorder.getAudioRecorder() as? FFmpegAudioRecorder ?: return
             ffmpegRecorder.setContext(appContext)
@@ -103,7 +104,7 @@ class Recorder private constructor(context: Context) {
             throw Exception(Constant.NOT_INIT_RECORDER)
 
         recorder.stopRecording()
-        if (!ffmpegMode) {
+        if (!withFFmpegMode) {
             finishRecording()
         }
     }

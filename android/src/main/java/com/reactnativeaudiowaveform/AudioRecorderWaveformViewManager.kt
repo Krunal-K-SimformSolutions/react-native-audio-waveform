@@ -70,9 +70,9 @@ class AudioRecorderWaveformViewManager(private val reactApplicationContext: Reac
     super.receiveCommand(root, commandId.toString(), args)
     when (commandId) {
       COMMAND_RECORDER_CREATE -> {
-        val rnSourceMode = Utils.getArgsValue(args, 1, AudioConstants.SOURCE_MODE, String::class) ?: AudioConstants.SOURCE_MODE
-        val rnExtensions = Utils.getArgsValue(args, 2, AudioConstants.EXTENSION, String::class)?: AudioConstants.EXTENSION
-        val rnDebug = Utils.getArgsValue(args, 3, true, Boolean::class) ?: true
+        val sourceMode = Utils.getArgsValue(args, 1, AudioConstants.SOURCE_MODE, String::class) ?: AudioConstants.SOURCE_MODE
+        val isFFmpegMode = Utils.getArgsValue(args, 2, false, Boolean::class)?: false
+        val isDebug = Utils.getArgsValue(args, 3, true, Boolean::class) ?: true
         val audioSource: Int = Utils.getAudioSource(Utils.getArgsValue(args, 4, null, Int::class))
         val audioEncoding: Int = Utils.getAudioEncoding(Utils.getArgsValue(args, 5, null, Int::class))
         val channel: Int = AudioFormat.CHANNEL_IN_MONO
@@ -83,12 +83,12 @@ class AudioRecorderWaveformViewManager(private val reactApplicationContext: Reac
 
         val config = AudioRecordConfig(audioSource, audioEncoding, channel, frequency)
         val convertConfig = FFmpegConvertConfig(bitRate, samplingRate, mono)
-        setUpRecorder(rnSourceMode, rnExtensions, rnDebug, config, convertConfig, root)
+        setUpRecorder(sourceMode, isFFmpegMode, isDebug, config, convertConfig, root)
       }
       COMMAND_RECORDER_START -> {
-        val rnFilepath = Utils.getArgsValue(args, 1, null, String::class)
-        if (rnFilepath != null) {
-          startRecording(rnFilepath, root)
+        val filepath = Utils.getArgsValue(args, 1, null, String::class)
+        if (filepath != null) {
+          startRecording(filepath, root)
         }
       }
       COMMAND_RECORDER_PAUSE -> pauseRecording(root)
@@ -217,57 +217,48 @@ class AudioRecorderWaveformViewManager(private val reactApplicationContext: Reac
     localEventDispatcher.dispatchEvent(event)
   }
 
-
-  //sourceMode -> "normal", "noise", "auto"
-  //extensions -> ".pcm", ".wav", ".mp3", ".aac", ".m4a", ".wma", ".flac", ".mp4"
   private fun setUpRecorder(
     @NonNull sourceMode: String,
-    @NonNull extensions: String,
+    @NonNull isFFmpegMode: Boolean,
     @NonNull isDebug: Boolean,
     @NonNull config: AudioRecordConfig,
     @NonNull convertConfig: FFmpegConvertConfig,
     @NonNull root: WaveformSeekBar
   ) {
     DebugState.state = isDebug
-    DebugState.debug("setUpRecorder -> $sourceMode $extensions $isDebug $config $convertConfig")
-    if (extensions.isNotEmpty()) {
-      try {
-        val isFFmpeg = extensions != ".pcm" && extensions != ".wav"
-        DebugState.debug("setUpRecorder -> isFFmpeg: $isFFmpeg")
-        recorder = Recorder.getInstance(reactApplicationContext.applicationContext)
-          .init(sourceMode, isFFmpeg, isDebug, config, convertConfig).apply {
-            onRawBuffer = {
-              DebugState.debug("onRawBuffer -> audioChunk: ${it.getMaxAmplitude()}")
-              root.addAmp(it.getMaxAmplitude())
-              dispatchJSEvent(OnBufferEvent(root.id, it))
-            }
-            onSilentDetected = {
-              DebugState.debug("onSilentDetected -> time: $it")
-              dispatchJSEvent(OnSilentDetectedEvent(root.id, it))
-            }
-            onProgress = { currentTime, maxTime ->
-              DebugState.debug("onProgress -> currentTime: $currentTime, maxTime: $maxTime")
-              dispatchJSEvent(OnProgressEvent(root.id, currentTime, maxTime))
-            }
-            onFFmpegState = {
-              DebugState.debug("onFFmpegState -> fFmpegState: $it")
-              dispatchJSEvent(OnFFmpegStateEvent(root.id, it))
-            }
-            onRecordState = {
-              DebugState.debug("onRecordState -> recordState: $it")
-              dispatchJSEvent(OnRecorderStateEvent(root.id, it))
-            }
-            onFinished = { file, metadata ->
-              DebugState.debug("onFinished -> file: $file, metadata: $metadata")
-              dispatchJSEvent(OnFinishedEvent(root.id, file, metadata))
-            }
+    DebugState.debug("setUpRecorder -> $sourceMode $isFFmpegMode $isDebug $config $convertConfig")
+    try {
+      recorder = Recorder.getInstance(reactApplicationContext.applicationContext)
+        .init(sourceMode, isFFmpegMode, isDebug, config, convertConfig).apply {
+          onRawBuffer = {
+            DebugState.debug("onRawBuffer -> audioChunk: ${it.getMaxAmplitude()}")
+            root.addAmp(it.getMaxAmplitude())
+            dispatchJSEvent(OnBufferEvent(root.id, it))
           }
-      } catch (e: Exception) {
-        DebugState.error("setUpRecorder", e)
-        dispatchJSEvent(OnErrorEvent(root.id, e))
-      }
-    } else {
-      dispatchJSEvent(OnErrorEvent(root.id, Exception(Constant.NOT_INIT_RECORDER)))
+          onSilentDetected = {
+            DebugState.debug("onSilentDetected -> time: $it")
+            dispatchJSEvent(OnSilentDetectedEvent(root.id, it))
+          }
+          onProgress = { currentTime, maxTime ->
+            DebugState.debug("onProgress -> currentTime: $currentTime, maxTime: $maxTime")
+            dispatchJSEvent(OnProgressEvent(root.id, currentTime, maxTime))
+          }
+          onFFmpegState = {
+            DebugState.debug("onFFmpegState -> fFmpegState: $it")
+            dispatchJSEvent(OnFFmpegStateEvent(root.id, it))
+          }
+          onRecordState = {
+            DebugState.debug("onRecordState -> recordState: $it")
+            dispatchJSEvent(OnRecorderStateEvent(root.id, it))
+          }
+          onFinished = { file, metadata ->
+            DebugState.debug("onFinished -> file: $file, metadata: $metadata")
+            dispatchJSEvent(OnFinishedEvent(root.id, file, metadata))
+          }
+        }
+    } catch (e: Exception) {
+      DebugState.error("setUpRecorder", e)
+      dispatchJSEvent(OnErrorEvent(root.id, e))
     }
   }
 

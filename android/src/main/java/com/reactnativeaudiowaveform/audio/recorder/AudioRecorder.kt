@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.media.MediaMetadataRetriever
 import android.media.audiofx.NoiseSuppressor
 import android.os.Build
+import com.reactnativeaudiowaveform.Utils
 import com.reactnativeaudiowaveform.audio.recorder.config.AudioRecorderConfig
 import com.reactnativeaudiowaveform.audio.recorder.constants.LogConstants
 import com.reactnativeaudiowaveform.audio.recorder.extensions.safeDispose
@@ -180,8 +181,12 @@ class AudioRecorder {
             val finder = recordFinder.getConstructor().newInstance() as? RecordFinder
                 ?: throw IllegalArgumentException(LogConstants.EXCEPTION_FINDER_NOT_HAVE_EMPTY_CONSTRUCTOR)
 
-            val file = recorderConfig.destFile ?: return // it can't be null
-            audioRecorder = finder.find(file.extension, file, recordWriter)
+            val destFile = recorderConfig.destFile ?: return // it can't be null
+            var file = destFile
+            if(recorderConfig.ffmpegMode) {
+              file = File(destFile.parent, "${Utils.getNameWithoutExtension(destFile.name)}.wav")
+            }
+            audioRecorder = finder.find(destFile.extension, file, recordWriter)
         } catch (exception: Exception) {
             throw IllegalArgumentException(
                 LogConstants.EXCEPTION_FINDER_NOT_HAVE_EMPTY_CONSTRUCTOR,

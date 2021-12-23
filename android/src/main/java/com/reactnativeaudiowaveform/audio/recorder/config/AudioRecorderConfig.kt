@@ -15,6 +15,11 @@ import java.io.File
  */
 class AudioRecorderConfig {
     /**
+     * ffmpegMode of AudioRecorder, This field can't be null-state.
+     */
+    var ffmpegMode: Boolean = false
+
+    /**
      * Destination file of AudioRecorder, This field can't be null-state.
      */
     var destFile: File? = null

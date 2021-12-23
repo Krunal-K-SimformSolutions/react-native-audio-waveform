@@ -1,7 +1,6 @@
 export { AudioRecorderWaveformView } from './recorder/AudioRecorderWaveformView';
 export { AudioPlayerWaveformView } from './player/AudioPlayerWaveformView';
 export type {
-  RecorderSource,
   FFmpegConvert,
   AudioRecordConfig,
 } from './recorder/RecorderTypes';

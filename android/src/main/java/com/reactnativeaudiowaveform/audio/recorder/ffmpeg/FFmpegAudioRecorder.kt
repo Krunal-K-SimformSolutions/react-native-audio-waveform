@@ -1,6 +1,9 @@
 package com.reactnativeaudiowaveform.audio.recorder.ffmpeg
 
 import android.content.Context
+import com.arthenica.ffmpegkit.FFmpegKit
+import com.arthenica.ffmpegkit.ReturnCode
+import com.reactnativeaudiowaveform.Utils
 import com.reactnativeaudiowaveform.audio.recorder.extensions.runOnUiThread
 import com.reactnativeaudiowaveform.audio.recorder.ffmpeg.config.FFmpegConvertConfig
 import com.reactnativeaudiowaveform.audio.recorder.ffmpeg.extensions.weak
@@ -8,17 +11,16 @@ import com.reactnativeaudiowaveform.audio.recorder.ffmpeg.listener.OnConvertStat
 import com.reactnativeaudiowaveform.audio.recorder.ffmpeg.model.FFmpegBitRate
 import com.reactnativeaudiowaveform.audio.recorder.ffmpeg.model.FFmpegConvertState
 import com.reactnativeaudiowaveform.audio.recorder.ffmpeg.model.FFmpegSamplingRate
+import com.reactnativeaudiowaveform.audio.recorder.model.DebugState
 import com.reactnativeaudiowaveform.audio.recorder.recorder.WavAudioRecorder
 import com.reactnativeaudiowaveform.audio.recorder.writer.RecordWriter
 import java.io.File
-import com.arthenica.ffmpegkit.ReturnCode
-import com.arthenica.ffmpegkit.FFmpegKit
-import com.reactnativeaudiowaveform.audio.recorder.model.DebugState
+
 
 /**
  * [com.reactnativeaudiowaveform.audio.recorder.recorder.AudioRecorder] for record audio and save in wav and convert them by FFmpeg.
  */
-open class FFmpegAudioRecorder(file: File, recordWriter: RecordWriter) : WavAudioRecorder(file, recordWriter) {
+open class FFmpegAudioRecorder(val extension: String, file: File, recordWriter: RecordWriter) : WavAudioRecorder(file, recordWriter) {
     private var _context: Context? by weak(null)
     private var convertStateChangeListener: OnConvertStateChangeListener? = null
     private var convertConfig: FFmpegConvertConfig = FFmpegConvertConfig.defaultConfig()
@@ -62,8 +64,9 @@ open class FFmpegAudioRecorder(file: File, recordWriter: RecordWriter) : WavAudi
 
     private fun convert() {
         val commandBuilder = mutableListOf<String>()
-        val destFile = File(file.absolutePath)
-        val tempFile = File(file.parent, "tmp-${file.name}")
+
+        //val destFile = File(file.absolutePath)
+        val tempFile = File(file.parent, "${Utils.getNameWithoutExtension(file.name)}.${extension}")
 
         commandBuilder.addAll(listOf("-y", "-i", file.path))
 
@@ -91,7 +94,7 @@ open class FFmpegAudioRecorder(file: File, recordWriter: RecordWriter) : WavAudi
                 ReturnCode.isSuccess(session.returnCode) -> {
                     // SUCCESS
                     file.delete()
-                    tempFile.renameTo(destFile)
+                    //tempFile.renameTo(destFile)
                     runOnUiThread { convertStateChangeListener?.onState(FFmpegConvertState.SUCCESS) }
                 }
                 ReturnCode.isCancel(session.returnCode) -> {

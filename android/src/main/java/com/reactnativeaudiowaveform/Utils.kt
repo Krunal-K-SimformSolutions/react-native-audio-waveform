@@ -32,6 +32,11 @@ object Utils {
     return Base64.decode(byteArrayString, Base64.NO_WRAP)
   }
 
+  fun getNameWithoutExtension(fileName: String): String {
+    val dotIndex = fileName.lastIndexOf(".")
+    return if(dotIndex == -1) fileName else fileName.substring(0, dotIndex)
+  }
+
   fun <T: Any> getArgsValue(@Nullable args: ReadableArray?, index: Int, defaultValue: T?, clazz: KClass<T>) : T? {
     return if(args == null || args.isNull(index)) {
       defaultValue

@@ -27,17 +27,15 @@ export default function App() {
 
   React.useEffect(() => {
     refRecorder?.current?.createRecorder({
-      typeAndExtensionAndroid: {
-        sourceMode: 'normal',
-        extensions: '.mp4'
-      },
+      sourceMode: 'normal',
+      isFFmpegMode: true,
       audioSourceAndroid: AudioSourceAndroidType.MIC,
       audioEncoderAndroid: AudioEncoderAndroidType.PCM_16BIT,
       frequencyAndroid: 44100,
       withDebug: true,
       ffmpegConvertAndroid: {
-        bitRate: FFmpegBitRate.s16,
-        samplingRate: FFmpegSamplingRate.ENCODING_IN_44100,
+        bitRate: FFmpegBitRate.def,
+        samplingRate: FFmpegSamplingRate.ORIGINAL,
         mono: true
       }
     });

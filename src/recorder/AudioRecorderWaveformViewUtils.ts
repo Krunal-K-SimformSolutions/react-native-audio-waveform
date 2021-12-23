@@ -19,10 +19,8 @@ export const setUpRecorder = (
   config?: AudioRecordConfig
 ) => {
   const {
-    typeAndExtensionAndroid: { sourceMode, extensions } = {
-      sourceMode: undefined,
-      extensions: undefined,
-    },
+    sourceMode,
+    isFFmpegMode,
     withDebug,
     audioSourceAndroid,
     audioEncoderAndroid,
@@ -40,7 +38,7 @@ export const setUpRecorder = (
     [
       viewId,
       sourceMode,
-      extensions,
+      isFFmpegMode,
       withDebug,
       audioSourceAndroid,
       audioEncoderAndroid,

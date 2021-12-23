@@ -1,16 +1,3 @@
-export type RecorderSource = {
-  sourceMode: 'normal' | 'noise' | 'auto';
-  extensions:
-    | '.pcm'
-    | '.wav'
-    | '.mp3'
-    | '.aac'
-    | '.m4a'
-    | '.wma'
-    | '.flac'
-    | '.mp4';
-};
-
 export enum AudioSourceAndroidType {
   DEFAULT = 0,
   MIC = 1,
@@ -87,8 +74,11 @@ export type FFmpegConvert = {
   mono?: boolean;
 };
 
+// '.pcm',  '.wav' -> false isFfmpegMode
+// '.mp3', '.aac', '.m4a',  '.wma', '.flac', '.mp4'
 export type AudioRecordConfig = {
-  typeAndExtensionAndroid?: RecorderSource;
+  sourceMode: 'normal' | 'noise' | 'auto';
+  isFFmpegMode?: boolean;
   audioSourceAndroid?: AudioSourceAndroidType;
   audioEncoderAndroid?: AudioEncoderAndroidType;
   frequencyAndroid?: number;

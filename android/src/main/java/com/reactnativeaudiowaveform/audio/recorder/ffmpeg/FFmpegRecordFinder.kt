@@ -19,12 +19,12 @@ class FFmpegRecordFinder : RecordFinder {
         return when (extension) {
             "wav" -> WavAudioRecorder(file, writer)
             "pcm" -> PcmAudioRecorder(file, writer)
-            "aac" -> FFmpegAudioRecorder(file, writer)
-            "mp3" -> FFmpegAudioRecorder(file, writer)
-            "m4a" -> FFmpegAudioRecorder(file, writer)
-            "wma" -> FFmpegAudioRecorder(file, writer)
-            "flac" -> FFmpegAudioRecorder(file, writer)
-            "mp4" -> FFmpegAudioRecorder(file, writer)
+            "aac" -> FFmpegAudioRecorder(extension, file, writer)
+            "mp3" -> FFmpegAudioRecorder(extension, file, writer)
+            "m4a" -> FFmpegAudioRecorder(extension, file, writer)
+            "wma" -> FFmpegAudioRecorder(extension, file, writer)
+            "flac" -> FFmpegAudioRecorder(extension, file, writer)
+            "mp4" -> FFmpegAudioRecorder(extension, file, writer)
             else -> PcmAudioRecorder(file, writer)
         }
     }
