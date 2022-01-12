@@ -1,8 +1,7 @@
 package com.reactnativeaudiowaveform.audio.recorder.ffmpeg
 
 import android.content.Context
-import com.arthenica.ffmpegkit.FFmpegKit
-import com.arthenica.ffmpegkit.ReturnCode
+import com.arthenica.mobileffmpeg.FFmpeg
 import com.reactnativeaudiowaveform.Utils
 import com.reactnativeaudiowaveform.audio.recorder.extensions.runOnUiThread
 import com.reactnativeaudiowaveform.audio.recorder.ffmpeg.config.FFmpegConvertConfig
@@ -89,15 +88,14 @@ open class FFmpegAudioRecorder(val extension: String, file: File, recordWriter: 
         try {
             // START
             runOnUiThread { convertStateChangeListener?.onState(FFmpegConvertState.START) }
-            val session = FFmpegKit.execute(cmd)
-            when {
-                ReturnCode.isSuccess(session.returnCode) -> {
+          when(FFmpeg.execute(cmd)) {
+                0 -> {
                     // SUCCESS
                     file.delete()
                     //tempFile.renameTo(destFile)
                     runOnUiThread { convertStateChangeListener?.onState(FFmpegConvertState.SUCCESS) }
                 }
-                ReturnCode.isCancel(session.returnCode) -> {
+                255 -> {
                     // CANCEL
                     runOnUiThread { convertStateChangeListener?.onState(FFmpegConvertState.CANCEL) }
                 }

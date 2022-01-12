@@ -13,7 +13,9 @@ class ByteArrayAudioChunk(var bytes: ByteArray) : AudioChunk {
      * see [AudioChunk.getMaxAmplitude]
      */
     override fun getMaxAmplitude(): Int {
-        return toShortArray().maxOrNull()?.toInt() ?: 0
+      return toShortArray().maxOrNull()?.toInt() ?: 0
+      //val maxAmp = toShortArray().maxOrNull()?.toInt() ?: 0
+      //return (20 * log10(maxAmp / AudioConstants.REFERENCE_MAX_AMP)).toInt()
     }
 
     /**

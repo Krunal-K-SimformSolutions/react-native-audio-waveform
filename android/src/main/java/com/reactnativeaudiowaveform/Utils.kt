@@ -37,6 +37,11 @@ object Utils {
     return if(dotIndex == -1) fileName else fileName.substring(0, dotIndex)
   }
 
+  fun getExtension(path: String): String? {
+    val dotIndex = path.lastIndexOf(".")
+    return if(dotIndex == -1) null else path.substring(dotIndex+1)
+  }
+
   fun <T: Any> getArgsValue(@Nullable args: ReadableArray?, index: Int, defaultValue: T?, clazz: KClass<T>) : T? {
     return if(args == null || args.isNull(index)) {
       defaultValue

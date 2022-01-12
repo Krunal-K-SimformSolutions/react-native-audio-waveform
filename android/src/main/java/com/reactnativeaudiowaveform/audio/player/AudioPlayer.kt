@@ -5,12 +5,14 @@ import android.annotation.TargetApi
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import androidx.core.net.toUri
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.PlaybackException
 import com.google.android.exoplayer2.Player
 import com.reactnativeaudiowaveform.audio.player.config.AudioPlayerConfig
 import com.reactnativeaudiowaveform.audio.player.extensions.recordFile
 import com.reactnativeaudiowaveform.audio.player.extensions.toMediaSource
+import com.reactnativeaudiowaveform.audio.player.extensions.toMediaSourceFactory
 import com.reactnativeaudiowaveform.audio.player.listener.OnPlayStateChangeListener
 import com.reactnativeaudiowaveform.audio.player.model.PlayState
 import com.reactnativeaudiowaveform.audio.player.player.SoundFile
@@ -48,13 +50,15 @@ class AudioPlayer : Player.Listener {
             audioPlayer.release()
         }
 
-        audioPlayer = ExoPlayer.Builder(context).build().apply {
-            setMediaSource(audioPlayerConfig.sourceFile!!.toMediaSource())
-            prepare()
-            addListener(this@AudioPlayer)
-        }
+        audioPlayer = ExoPlayer.Builder(context)
+          .setMediaSourceFactory(context.toMediaSourceFactory())
+          .build()
+        audioPlayer.setMediaSource(audioPlayerConfig.sourceFile!!.toMediaSource(context))
+        audioPlayer.prepare()
+        audioPlayer.addListener(this@AudioPlayer)
 
         DebugState.state = audioPlayerConfig.debugMode
+      DebugState.debug("sourceFile -> ${audioPlayerConfig.sourceFile!!.toUri()}")
     }
 
     /**
@@ -290,9 +294,15 @@ class AudioPlayer : Player.Listener {
                 playStateChangeListener?.onState(PlayState.STOP)
                 reset()
             }
-            Player.STATE_READY -> Unit
-            Player.STATE_BUFFERING -> Unit
-            Player.STATE_IDLE -> Unit
+            Player.STATE_READY -> {
+              DebugState.debug("STATE_READY")
+            }
+            Player.STATE_BUFFERING -> {
+              DebugState.debug("STATE_BUFFERING")
+            }
+            Player.STATE_IDLE -> {
+              DebugState.debug("STATE_IDLE")
+            }
         }
     }
 

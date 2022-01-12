@@ -28,7 +28,7 @@ export default function App() {
   React.useEffect(() => {
     refRecorder?.current?.createRecorder({
       sourceMode: 'normal',
-      isFFmpegMode: true,
+      isFFmpegMode: false,
       audioSourceAndroid: AudioSourceAndroidType.MIC,
       audioEncoderAndroid: AudioEncoderAndroidType.PCM_16BIT,
       frequencyAndroid: 44100,
@@ -42,7 +42,7 @@ export default function App() {
   }, [refRecorder]);
 
   React.useEffect(() => {
-    refPlayer?.current?.createPlayer();
+    refPlayer?.current?.createPlayer(true);
   }, [refPlayer]);
 
   return (
@@ -51,20 +51,37 @@ export default function App() {
         <AudioRecorderWaveformView
           ref={refRecorder}
           style={styles.container}
+          gap={3}
+          waveWidth={6}
+          radius={3}
+          minHeight={1}
+          gravity={'center'}
+          progressColor={'#FF0000'}
+          backgroundColor={'#0000FF'}
           onFinished={({ nativeEvent: { file } }) => {
-            refPlayer?.current?.setSource(file);
+            refPlayer?.current?.setSource(file, false);
           }}
         />
       )}
       {isAndroid && (
-        <AudioPlayerWaveformView ref={refPlayer} style={styles.container} />
+        <AudioPlayerWaveformView 
+          ref={refPlayer} 
+          style={styles.container}
+          gap={3}
+          waveWidth={6}
+          radius={3}
+          minHeight={1}
+          gravity={'center'}
+          progressColor={'#FF0000'}
+          backgroundColor={'#00FF00'} />
       )}
+
       <Text style={styles.optionText}>Recorder</Text>
       <View style={styles.boxContainer}>
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={() => {
-            refRecorder.current?.startRecording('sample.mp4');
+            refRecorder.current?.startRecording('sample.wav');
           }}
           style={styles.box}
         >
