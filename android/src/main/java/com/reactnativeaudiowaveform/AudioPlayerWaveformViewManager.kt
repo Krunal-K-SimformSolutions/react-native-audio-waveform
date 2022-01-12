@@ -1,6 +1,8 @@
 package com.reactnativeaudiowaveform
 
 import android.graphics.Color
+import android.os.StrictMode
+import android.os.StrictMode.ThreadPolicy
 import androidx.annotation.NonNull
 import androidx.annotation.Nullable
 import com.facebook.react.bridge.ReactApplicationContext
@@ -19,7 +21,9 @@ import com.reactnativeaudiowaveform.visualizer.SeekBarOnProgressChanged
 import com.reactnativeaudiowaveform.visualizer.WaveGravity
 import com.reactnativeaudiowaveform.visualizer.WaveType
 import com.reactnativeaudiowaveform.visualizer.WaveformSeekBar
-import java.lang.Exception
+import linc.com.amplituda.*
+import linc.com.amplituda.exceptions.AmplitudaException
+import com.reactnativeaudiowaveform.visualizer.Utils as WaveUtils
 
 class AudioPlayerWaveformViewManager(private val reactApplicationContext: ReactApplicationContext) : SimpleViewManager<WaveformSeekBar>() {
   private lateinit var player: Player
@@ -73,8 +77,9 @@ class AudioPlayerWaveformViewManager(private val reactApplicationContext: ReactA
       }
       COMMAND_PLAYER_SOURCE -> {
         val rnFilepath = Utils.getArgsValue(args, 1, null, String::class)
+        val isFFmpegMode = Utils.getArgsValue(args, 2, false, Boolean::class)?: false
         if (rnFilepath != null) {
-          setSource(rnFilepath, root)
+          setSource(rnFilepath, isFFmpegMode, root)
         }
       }
       COMMAND_PLAYER_START -> startPlaying(root)
@@ -116,25 +121,25 @@ class AudioPlayerWaveformViewManager(private val reactApplicationContext: ReactA
 
   @ReactProp(name = "waveWidth", defaultFloat = 10f)
   fun setWaveWidth(view: WaveformSeekBar, @NonNull waveWidth: Float) {
-    view.waveWidth = waveWidth
+    view.waveWidth = WaveUtils.dp(view.context, waveWidth)
     DebugState.debug("setWaveWidth -> waveWidth: $waveWidth")
   }
 
   @ReactProp(name = "gap", defaultFloat = 5f)
   fun setWaveGap(view: WaveformSeekBar, @NonNull gap: Float) {
-    view.waveGap = gap
+    view.waveGap = WaveUtils.dp(view.context, gap)
     DebugState.debug("setWaveGap -> gap: $gap")
   }
 
   @ReactProp(name = "minHeight", defaultFloat = 20f)
   fun setWaveMinHeight(view: WaveformSeekBar, @NonNull minHeight: Float) {
-    view.waveMinHeight = minHeight
+    view.waveMinHeight = WaveUtils.dp(view.context, minHeight)
     DebugState.debug("setWaveMinHeight -> minHeight: $minHeight")
   }
 
   @ReactProp(name = "radius", defaultFloat = 5f)
   fun setWaveCornerRadius(view: WaveformSeekBar, @NonNull radius: Float) {
-    view.waveCornerRadius = radius
+    view.waveCornerRadius = WaveUtils.dp(view.context, radius)
     DebugState.debug("setWaveCornerRadius -> radius: $radius")
   }
 
@@ -159,7 +164,7 @@ class AudioPlayerWaveformViewManager(private val reactApplicationContext: ReactA
     DebugState.debug("setWaveBackgroundColor -> backgroundColor: $backgroundColor")
   }
 
-  @ReactProp(name = "backgroundColor", defaultInt = 0)
+  @ReactProp(name = "backgroundColor", defaultInt = Color.BLACK)
   fun setWaveBackgroundColor(view: WaveformSeekBar, @NonNull backgroundColor: Int) {
     view.waveBackgroundColor = backgroundColor
     DebugState.debug("setWaveBackgroundColor -> backgroundColor: $backgroundColor")
@@ -175,7 +180,7 @@ class AudioPlayerWaveformViewManager(private val reactApplicationContext: ReactA
     DebugState.debug("setWaveProgressColor -> progressColor: $progressColor")
   }
 
-  @ReactProp(name = "progressColor", defaultInt = 0)
+  @ReactProp(name = "progressColor", defaultInt = Color.RED)
   fun setWaveProgressColor(view: WaveformSeekBar, @NonNull progressColor: Int) {
     view.waveProgressColor = progressColor
     DebugState.debug("setWaveProgressColor -> progressColor: $progressColor")
@@ -213,6 +218,7 @@ class AudioPlayerWaveformViewManager(private val reactApplicationContext: ReactA
         onProgress = { time, _ ->
           DebugState.debug("onProgress -> time: $time")
           dispatchJSEvent(OnProgressEvent(root.id, time))
+          root.progress = (time.toFloat() / player.getTotalDuration()) * 100
         }
         onPlayState = {
           DebugState.debug("onPlayState -> playState: $it")
@@ -233,24 +239,64 @@ class AudioPlayerWaveformViewManager(private val reactApplicationContext: ReactA
     return true
   }
 
-  private fun setSource(@NonNull filePath: String, @NonNull root: WaveformSeekBar) {
+  private fun setSource(@NonNull filePath: String, @NonNull isFFmpegMode: Boolean, @NonNull root: WaveformSeekBar) {
     DebugState.debug("setSource -> $filePath")
     try {
       if(checkPlayerInit(root)) {
         player.setSource(filePath)
         dispatchJSEvent(OnAmpsStateEvent(root.id, AmpsState.START))
-        player.loadFileAmps().subscribe({ amps ->
-          DebugState.debug("loadFileAmps -> amps: $amps")
-          root.setWaveForm(amps)
-          dispatchJSEvent(OnLoadAmpsEvent(root.id, amps))
-          dispatchJSEvent(OnAmpsStateEvent(root.id, AmpsState.SUCCESS))
-        }, {
-          DebugState.error("loadFileAmps", it)
-          dispatchJSEvent(OnErrorEvent(root.id, Exception(it)))
-          dispatchJSEvent(OnAmpsStateEvent(root.id, AmpsState.ERROR))
-        }, {
-          dispatchJSEvent(OnAmpsStateEvent(root.id, AmpsState.COMPLETED))
-        })
+        if (!isFFmpegMode) {
+          player.loadFileAmps().subscribe({ amps ->
+            DebugState.debug("loadFileAmps -> amps: $amps")
+            root.setWaveForm(amps)
+            dispatchJSEvent(OnLoadAmpsEvent(root.id, amps))
+            dispatchJSEvent(OnAmpsStateEvent(root.id, AmpsState.SUCCESS))
+          }, {
+            DebugState.error("loadFileAmps", it)
+            dispatchJSEvent(OnErrorEvent(root.id, Exception(it)))
+            dispatchJSEvent(OnAmpsStateEvent(root.id, AmpsState.ERROR))
+          }, {
+            dispatchJSEvent(OnAmpsStateEvent(root.id, AmpsState.COMPLETED))
+          })
+        } else {
+          val policy = ThreadPolicy.Builder().permitAll().build()
+          StrictMode.setThreadPolicy(policy)
+          val amplitudes = Amplituda(reactApplicationContext.applicationContext)
+          amplitudes.processAudio(
+            filePath,
+            Compress.withParams(Compress.AVERAGE, 5),
+            object : AmplitudaProgressListener() {
+              override fun onStartProgress() {
+                super.onStartProgress()
+                DebugState.debug("Start Progress of AMPS")
+              }
+
+              override fun onStopProgress() {
+                super.onStopProgress()
+                DebugState.debug("Stop Progress of AMPS")
+              }
+
+              override fun onProgress(operation: ProgressOperation, progress: Int) {
+                val currentOperation = when (operation) {
+                  ProgressOperation.PROCESSING -> "Process audio"
+                  ProgressOperation.DECODING -> "Decode resource"
+                  ProgressOperation.DOWNLOADING -> "Download audio from url"
+                  else -> ""
+                }
+                DebugState.debug("$currentOperation: $progress%")
+              }
+            }
+          )[{ result ->
+            DebugState.debug("setSource result -> $result")
+            root.setWaveForm(result.amplitudesAsList())
+            dispatchJSEvent(OnLoadAmpsEvent(root.id, result.amplitudesAsList()))
+            dispatchJSEvent(OnAmpsStateEvent(root.id, AmpsState.SUCCESS))
+
+          }, { exception: AmplitudaException ->
+            DebugState.error("setSource exception -> $exception")
+            dispatchJSEvent(OnErrorEvent(root.id, exception))
+          }]
+        }
       }
     } catch (e: Exception) {
       DebugState.error("setSource", e)

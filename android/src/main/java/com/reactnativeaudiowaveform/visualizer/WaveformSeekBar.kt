@@ -20,7 +20,7 @@ open class WaveformSeekBar @JvmOverloads constructor(
     private val mWavePaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val mWaveRect = RectF()
     private val mProgressCanvas = Canvas()
-    private var mMaxValue = Utils.dp(context, 2).toInt()
+    private var mMaxValue = Utils.dp(context, 2f).toInt()
     private var mTouchDownX = 0F
     private var mProgress = 0f
     private var mScaledTouchSlop = ViewConfiguration.get(context).scaledTouchSlop
@@ -62,13 +62,13 @@ open class WaveformSeekBar @JvmOverloads constructor(
             invalidate()
         }
 
-    var waveGap: Float = Utils.dp(context, 2)
+    var waveGap: Float = Utils.dp(context, 2f)
         set(value) {
             field = value
             invalidate()
         }
 
-    var waveWidth: Float = Utils.dp(context, 5)
+    var waveWidth: Float = Utils.dp(context, 5f)
         set(value) {
             field = value
             invalidate()
@@ -80,7 +80,7 @@ open class WaveformSeekBar @JvmOverloads constructor(
             invalidate()
         }
 
-    var waveCornerRadius: Float = Utils.dp(context, 2)
+    var waveCornerRadius: Float = Utils.dp(context, 2f)
         set(value) {
             field = value
             invalidate()
@@ -142,11 +142,14 @@ open class WaveformSeekBar @JvmOverloads constructor(
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+      if (w >= 0 && h >= 0) {
         super.onSizeChanged(w, h, oldw, oldh)
         mCanvasWidth = w
         mCanvasHeight = h
-        progressBitmap = Bitmap.createBitmap(getAvailableWidth(), mCanvasHeight, Bitmap.Config.ARGB_8888)
+        progressBitmap =
+          Bitmap.createBitmap(getAvailableWidth(), mCanvasHeight, Bitmap.Config.ARGB_8888)
         progressShader = BitmapShader(progressBitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
+      }
     }
 
     override fun onDraw(canvas: Canvas) {

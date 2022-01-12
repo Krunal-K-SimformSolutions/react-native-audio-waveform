@@ -24,6 +24,7 @@ import com.reactnativeaudiowaveform.visualizer.SeekBarOnProgressChanged
 import com.reactnativeaudiowaveform.visualizer.WaveGravity
 import com.reactnativeaudiowaveform.visualizer.WaveType
 import com.reactnativeaudiowaveform.visualizer.WaveformSeekBar
+import com.reactnativeaudiowaveform.visualizer.Utils as WaveUtils
 
 class AudioRecorderWaveformViewManager(private val reactApplicationContext: ReactApplicationContext) : SimpleViewManager<WaveformSeekBar>() {
   private lateinit var recorder: Recorder
@@ -131,25 +132,25 @@ class AudioRecorderWaveformViewManager(private val reactApplicationContext: Reac
 
   @ReactProp(name = "waveWidth", defaultFloat = 10f)
   fun setWaveWidth(view: WaveformSeekBar, @NonNull waveWidth: Float) {
-    view.waveWidth = waveWidth
+    view.waveWidth = WaveUtils.dp(view.context, waveWidth)
     DebugState.debug("setWaveWidth -> waveWidth: $waveWidth")
   }
 
   @ReactProp(name = "gap", defaultFloat = 5f)
   fun setWaveGap(view: WaveformSeekBar, @NonNull gap: Float) {
-    view.waveGap = gap
+    view.waveGap = WaveUtils.dp(view.context, gap)
     DebugState.debug("setWaveGap -> gap: $gap")
   }
 
   @ReactProp(name = "minHeight", defaultFloat = 20f)
   fun setWaveMinHeight(view: WaveformSeekBar, @NonNull minHeight: Float) {
-    view.waveMinHeight = minHeight
+    view.waveMinHeight = WaveUtils.dp(view.context, minHeight)
     DebugState.debug("setWaveMinHeight -> minHeight: $minHeight")
   }
 
   @ReactProp(name = "radius", defaultFloat = 5f)
   fun setWaveCornerRadius(view: WaveformSeekBar, @NonNull radius: Float) {
-    view.waveCornerRadius = radius
+    view.waveCornerRadius = WaveUtils.dp(view.context, radius)
     DebugState.debug("setWaveCornerRadius -> radius: $radius")
   }
 
@@ -174,7 +175,7 @@ class AudioRecorderWaveformViewManager(private val reactApplicationContext: Reac
     DebugState.debug("setWaveBackgroundColor -> backgroundColor: $backgroundColor")
   }
 
-  @ReactProp(name = "backgroundColor", defaultInt = 0)
+  @ReactProp(name = "backgroundColor", defaultInt = Color.BLACK)
   fun setWaveBackgroundColor(view: WaveformSeekBar, @NonNull backgroundColor: Int) {
     view.waveBackgroundColor = backgroundColor
     DebugState.debug("setWaveBackgroundColor -> backgroundColor: $backgroundColor")
@@ -190,7 +191,7 @@ class AudioRecorderWaveformViewManager(private val reactApplicationContext: Reac
     DebugState.debug("setWaveProgressColor -> progressColor: $progressColor")
   }
 
-  @ReactProp(name = "progressColor", defaultInt = 0)
+  @ReactProp(name = "progressColor", defaultInt = Color.RED)
   fun setWaveProgressColor(view: WaveformSeekBar, @NonNull progressColor: Int) {
     view.waveProgressColor = progressColor
     DebugState.debug("setWaveProgressColor -> progressColor: $progressColor")

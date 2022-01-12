@@ -39,7 +39,7 @@ export type AudioPlayerWaveformViewProps = Partial<{
 
 export type AudioPlayerWaveformHandleType = Required<{
   createPlayer: (withDebug: boolean) => void;
-  setSource: (filePath: string) => void;
+  setSource: (filePath: string, isFFmpegMode?: boolean) => void;
   startPlaying: () => void;
   pausePlaying: () => void;
   resumePlaying: () => void;
