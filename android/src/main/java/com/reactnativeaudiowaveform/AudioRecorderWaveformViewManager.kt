@@ -1,18 +1,13 @@
 package com.reactnativeaudiowaveform
 
-import android.graphics.Color
 import android.media.AudioFormat
 import androidx.annotation.NonNull
 import androidx.annotation.Nullable
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.common.MapBuilder
-import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerModule
-import com.facebook.react.uimanager.annotations.ReactProp
-import com.facebook.react.uimanager.events.Event
-import com.facebook.react.uimanager.events.EventDispatcher
 import com.reactnativeaudiowaveform.audio.recorder.config.AudioRecordConfig
 import com.reactnativeaudiowaveform.audio.recorder.constants.AudioConstants
 import com.reactnativeaudiowaveform.audio.recorder.ffmpeg.config.FFmpegConvertConfig
@@ -21,14 +16,11 @@ import com.reactnativeaudiowaveform.audio.recorder.ffmpeg.model.FFmpegSamplingRa
 import com.reactnativeaudiowaveform.audio.recorder.model.DebugState
 import com.reactnativeaudiowaveform.event.recorder.*
 import com.reactnativeaudiowaveform.visualizer.SeekBarOnProgressChanged
-import com.reactnativeaudiowaveform.visualizer.WaveGravity
 import com.reactnativeaudiowaveform.visualizer.WaveType
 import com.reactnativeaudiowaveform.visualizer.WaveformSeekBar
-import com.reactnativeaudiowaveform.visualizer.Utils as WaveUtils
 
-class AudioRecorderWaveformViewManager(private val reactApplicationContext: ReactApplicationContext) : SimpleViewManager<WaveformSeekBar>() {
+class AudioRecorderWaveformViewManager(reactApplicationContext: ReactApplicationContext) : WaveformViewManager(reactApplicationContext) {
   private lateinit var recorder: Recorder
-  private lateinit var localEventDispatcher: EventDispatcher
 
   companion object {
     const val COMMAND_RECORDER_CREATE = 1
@@ -40,15 +32,6 @@ class AudioRecorderWaveformViewManager(private val reactApplicationContext: Reac
   }
 
   override fun getName() = TAG
-
-  /**
-   * Return a Waveform which will later hold the View
-   */
-  override fun createViewInstance(@NonNull reactContext: ThemedReactContext): WaveformSeekBar {
-    val waveformSeekBar = WaveformSeekBar(reactContext)
-    initView(reactContext, waveformSeekBar)
-    return waveformSeekBar
-  }
 
   /**
    * Map the "create, Start, Pause, Resume & Stop" command to an integer
@@ -112,92 +95,7 @@ class AudioRecorderWaveformViewManager(private val reactApplicationContext: Reac
       .build()
   }
 
-  @ReactProp(name = "visibleProgress", defaultFloat = 50f)
-  fun setVisibleProgress(view: WaveformSeekBar, @NonNull visibleProgress: Float) {
-    view.visibleProgress = visibleProgress
-    DebugState.debug("setVisibleProgress -> visibleProgress: $visibleProgress")
-  }
-
-  @ReactProp(name = "progress", defaultFloat = 0f)
-  fun setProgress(view: WaveformSeekBar, @NonNull progress: Float) {
-    view.progress = progress
-    DebugState.debug("setProgress -> progress: $progress")
-  }
-
-  @ReactProp(name = "maxProgress", defaultFloat = 100f)
-  fun setMaxProgress(view: WaveformSeekBar, @NonNull maxProgress: Float) {
-    view.maxProgress = maxProgress
-    DebugState.debug("setMaxProgress -> maxProgress: $maxProgress")
-  }
-
-  @ReactProp(name = "waveWidth", defaultFloat = 10f)
-  fun setWaveWidth(view: WaveformSeekBar, @NonNull waveWidth: Float) {
-    view.waveWidth = WaveUtils.dp(view.context, waveWidth)
-    DebugState.debug("setWaveWidth -> waveWidth: $waveWidth")
-  }
-
-  @ReactProp(name = "gap", defaultFloat = 5f)
-  fun setWaveGap(view: WaveformSeekBar, @NonNull gap: Float) {
-    view.waveGap = WaveUtils.dp(view.context, gap)
-    DebugState.debug("setWaveGap -> gap: $gap")
-  }
-
-  @ReactProp(name = "minHeight", defaultFloat = 20f)
-  fun setWaveMinHeight(view: WaveformSeekBar, @NonNull minHeight: Float) {
-    view.waveMinHeight = WaveUtils.dp(view.context, minHeight)
-    DebugState.debug("setWaveMinHeight -> minHeight: $minHeight")
-  }
-
-  @ReactProp(name = "radius", defaultFloat = 5f)
-  fun setWaveCornerRadius(view: WaveformSeekBar, @NonNull radius: Float) {
-    view.waveCornerRadius = WaveUtils.dp(view.context, radius)
-    DebugState.debug("setWaveCornerRadius -> radius: $radius")
-  }
-
-  @ReactProp(name = "gravity")
-  fun setWaveGravity(view: WaveformSeekBar, @Nullable gravity: String) {
-    when(gravity) {
-      "top" -> view.waveGravity = WaveGravity.TOP
-      "center" -> view.waveGravity = WaveGravity.CENTER
-      "bottom" -> view.waveGravity = WaveGravity.BOTTOM
-      else -> view.waveGravity = WaveGravity.CENTER
-    }
-    DebugState.debug("setWaveGravity -> gravity: $gravity")
-  }
-
-  @ReactProp(name = "backgroundColor")
-  fun setWaveBackgroundColor(view: WaveformSeekBar, @Nullable backgroundColor: String?) {
-    if(backgroundColor != null) {
-      view.waveBackgroundColor = Color.parseColor(backgroundColor)
-    } else {
-      view.waveBackgroundColor = Color.BLACK
-    }
-    DebugState.debug("setWaveBackgroundColor -> backgroundColor: $backgroundColor")
-  }
-
-  @ReactProp(name = "backgroundColor", defaultInt = Color.BLACK)
-  fun setWaveBackgroundColor(view: WaveformSeekBar, @NonNull backgroundColor: Int) {
-    view.waveBackgroundColor = backgroundColor
-    DebugState.debug("setWaveBackgroundColor -> backgroundColor: $backgroundColor")
-  }
-
-  @ReactProp(name = "progressColor")
-  fun setWaveProgressColor(view: WaveformSeekBar, @Nullable progressColor: String?) {
-    if(progressColor != null) {
-      view.waveProgressColor = Color.parseColor(progressColor)
-    } else {
-      view.waveProgressColor = Color.RED
-    }
-    DebugState.debug("setWaveProgressColor -> progressColor: $progressColor")
-  }
-
-  @ReactProp(name = "progressColor", defaultInt = Color.RED)
-  fun setWaveProgressColor(view: WaveformSeekBar, @NonNull progressColor: Int) {
-    view.waveProgressColor = progressColor
-    DebugState.debug("setWaveProgressColor -> progressColor: $progressColor")
-  }
-
-  private fun initView(@NonNull reactContext: ThemedReactContext, @NonNull waveformSeekBar: WaveformSeekBar) {
+  override fun initView(@NonNull reactContext: ThemedReactContext, @NonNull waveformSeekBar: WaveformSeekBar) {
     localEventDispatcher = reactContext.getNativeModule(UIManagerModule::class.java).eventDispatcher
 
     waveformSeekBar.waveType = WaveType.RECORDER
@@ -209,13 +107,6 @@ class AudioRecorderWaveformViewManager(private val reactApplicationContext: Reac
         }
       }
     }
-  }
-
-  private fun dispatchJSEvent(@NonNull event: Event<*>) {
-    if(!this::localEventDispatcher.isInitialized) {
-      throw Exception(Constant.NOT_INIT_EVENT_DISPATCHER)
-    }
-    localEventDispatcher.dispatchEvent(event)
   }
 
   private fun setUpRecorder(
@@ -255,6 +146,7 @@ class AudioRecorderWaveformViewManager(private val reactApplicationContext: Reac
           onFinished = { file, metadata ->
             DebugState.debug("onFinished -> file: $file, metadata: $metadata")
             dispatchJSEvent(OnFinishedEvent(root.id, file, metadata))
+            root.printAmplitudeList()
           }
         }
     } catch (e: Exception) {

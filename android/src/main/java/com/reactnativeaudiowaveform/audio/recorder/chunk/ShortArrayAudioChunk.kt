@@ -1,8 +1,8 @@
 package com.reactnativeaudiowaveform.audio.recorder.chunk
 
+import com.reactnativeaudiowaveform.Utils
 import com.reactnativeaudiowaveform.audio.recorder.constants.AudioConstants
 import kotlin.experimental.and
-import kotlin.math.log10
 
 /**
  * AudioRecorder
@@ -12,14 +12,13 @@ import kotlin.math.log10
 class ShortArrayAudioChunk(var shorts: ShortArray) : AudioChunk {
     private var _readCount: Int = 0
 
-    /**
-     * see [AudioChunk.getMaxAmplitude]
-     */
-    override fun getMaxAmplitude(): Int {
-      return shorts.maxOrNull()?.toInt() ?: 0
-      //val maxAmp = shorts.maxOrNull()?.toInt() ?: 0
-      //return (20 * log10(maxAmp / AudioConstants.REFERENCE_MAX_AMP)).toInt()
-    }
+  /**
+   * see [AudioChunk.getMaxAmplitude]
+   */
+  override fun getMaxAmplitude(): Int {
+    val maxAmplitude = shorts.maxOrNull()?.toInt() ?: 0
+    return Utils.amplitudeMagnify(maxAmplitude)
+  }
 
     /**
      * see [AudioChunk.toByteArray]

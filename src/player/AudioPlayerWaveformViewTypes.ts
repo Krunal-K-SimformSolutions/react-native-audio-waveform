@@ -19,6 +19,7 @@ export type OnLoadAmpsEvent = (
 
 export type AudioPlayerWaveformViewProps = Partial<{
   visibleProgress: number;
+  playbackSpeed: number;
   progress: number;
   maxProgress: number;
   waveWidth: number;

@@ -22,12 +22,13 @@ import type {
 const isAndroid = Platform.OS === 'android';
 
 export default function App() {
+  const [playbackSpeed, setPlaybackSpeed] = React.useState(1)
   const refRecorder = React.useRef<AudioRecorderWaveformHandleType>();
   const refPlayer = React.useRef<AudioPlayerWaveformHandleType>();
 
   React.useEffect(() => {
     refRecorder?.current?.createRecorder({
-      sourceMode: 'normal',
+      sourceMode: 'auto',
       isFFmpegMode: false,
       audioSourceAndroid: AudioSourceAndroidType.MIC,
       audioEncoderAndroid: AudioEncoderAndroidType.PCM_16BIT,
@@ -48,32 +49,37 @@ export default function App() {
   return (
     <View style={styles.container}>
       {isAndroid && (
-        <AudioRecorderWaveformView
-          ref={refRecorder}
-          style={styles.container}
-          gap={3}
-          waveWidth={6}
-          radius={3}
-          minHeight={1}
-          gravity={'center'}
-          progressColor={'#FF0000'}
-          backgroundColor={'#0000FF'}
-          onFinished={({ nativeEvent: { file } }) => {
-            refPlayer?.current?.setSource(file, false);
-          }}
-        />
+        <View style={styles.waveContainer}>
+            <AudioRecorderWaveformView
+              ref={refRecorder}
+              style={{ width: 400, height: 200 }}
+              gap={3}
+              waveWidth={6}
+              radius={3}
+              minHeight={1}
+              gravity={'center'}
+              progressColor={'#FF0000'}
+              backgroundColor={'#0000FF'}
+              onFinished={({ nativeEvent: { file } }) => {
+                refPlayer?.current?.setSource(file, false);
+              }}
+            />
+          </View>
       )}
       {isAndroid && (
-        <AudioPlayerWaveformView 
-          ref={refPlayer} 
-          style={styles.container}
-          gap={3}
-          waveWidth={6}
-          radius={3}
-          minHeight={1}
-          gravity={'center'}
-          progressColor={'#FF0000'}
-          backgroundColor={'#00FF00'} />
+        <View style={styles.waveContainer}>
+          <AudioPlayerWaveformView 
+            ref={refPlayer} 
+            style={{ width: 400, height: 200 }}
+            gap={3}
+            waveWidth={6}
+            radius={3}
+            minHeight={1}
+            gravity={'center'}
+            playbackSpeed={playbackSpeed}
+            progressColor={'#FF0000'}
+            backgroundColor={'#00FF00'} />
+          </View>
       )}
 
       <Text style={styles.optionText}>Recorder</Text>
@@ -154,6 +160,24 @@ export default function App() {
           <Text style={styles.boxText}>Stop</Text>
         </TouchableOpacity>
       </View>
+      <View style={styles.boxContainer}>
+        <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => {
+              if(playbackSpeed === 1.0) {
+                setPlaybackSpeed(1.25);
+              } else if(playbackSpeed === 1.25) {
+                setPlaybackSpeed(2);
+              } else {
+                setPlaybackSpeed(1);
+              }
+            }}
+            style={styles.box}
+          >
+            <Text style={styles.boxText}>{playbackSpeed === 1.25 ? 1.5 : playbackSpeed}x</Text>
+        </TouchableOpacity>
+      </View>
+        
     </View>
   );
 }
@@ -163,6 +187,12 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  waveContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 10
   },
   box: {
     width: 90,

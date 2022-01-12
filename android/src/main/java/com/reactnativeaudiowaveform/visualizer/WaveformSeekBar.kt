@@ -1,8 +1,15 @@
 package com.reactnativeaudiowaveform.visualizer
 
 import android.content.Context
-import android.graphics.*
+import android.graphics.Paint
+import android.graphics.RectF
+import android.graphics.Bitmap
+import android.graphics.Shader
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.BitmapShader
 import android.util.AttributeSet
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
@@ -20,7 +27,6 @@ open class WaveformSeekBar @JvmOverloads constructor(
     private val mWavePaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val mWaveRect = RectF()
     private val mProgressCanvas = Canvas()
-    private var mMaxValue = Utils.dp(context, 2f).toInt()
     private var mTouchDownX = 0F
     private var mProgress = 0f
     private var mScaledTouchSlop = ViewConfiguration.get(context).scaledTouchSlop
@@ -33,7 +39,6 @@ open class WaveformSeekBar @JvmOverloads constructor(
     var sample: IntArray = intArrayOf()
         set(value) {
             field = value
-            setMaxValue()
             invalidate()
         }
 
@@ -80,6 +85,12 @@ open class WaveformSeekBar @JvmOverloads constructor(
             invalidate()
         }
 
+    var waveMaxHeight: Int = getAvailableHeight()
+        set(value) {
+          field = value
+          invalidate()
+        }
+
     var waveCornerRadius: Float = Utils.dp(context, 2f)
         set(value) {
             field = value
@@ -122,16 +133,24 @@ open class WaveformSeekBar @JvmOverloads constructor(
         ta.recycle()
     }
 
-    private fun setMaxValue() {
-        mMaxValue = sample.maxOrNull() ?: 0
+    private fun updateMaxHeight() {
+        if(waveMaxHeight != getAvailableHeight()) {
+            waveMaxHeight = getAvailableHeight()
+        }
     }
 
     fun setSampleFrom(samples: IntArray) {
         this.sample = samples
+        updateMaxHeight()
     }
 
     fun setWaveForm(amps: List<Int>) {
         this.sample = amps.toIntArray()
+        updateMaxHeight()
+    }
+
+    fun printAmplitudeList() {
+      Log.e("KRUNAL", "sample = ${this.sample.contentToString()}")
     }
 
     fun addAmp(amps: Int) {
@@ -139,6 +158,7 @@ open class WaveformSeekBar @JvmOverloads constructor(
         tempAmps.addAll(this.sample.toList())
         tempAmps.add(amps)
         this.sample = tempAmps.toIntArray()
+        updateMaxHeight()
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -189,7 +209,7 @@ open class WaveformSeekBar @JvmOverloads constructor(
         for (i in start until barsToDraw + start + 3) {
             sampleItemPosition = floor(i * step).roundToInt()
             var waveHeight = if (sampleItemPosition >= 0 && sampleItemPosition < waveSample.size)
-                getAvailableHeight() * (waveSample[sampleItemPosition].toFloat() / mMaxValue)
+                getAvailableHeight() * (waveSample[sampleItemPosition].toFloat() / waveMaxHeight)
             else 0F
 
             if (waveHeight < waveMinHeight)
@@ -300,5 +320,4 @@ open class WaveformSeekBar @JvmOverloads constructor(
     private fun getAvailableWidth() = mCanvasWidth - paddingLeft - paddingRight
 
     private fun getAvailableHeight() = mCanvasHeight - paddingTop - paddingBottom
-
 }
