@@ -1,5 +1,6 @@
 package com.reactnativeaudiowaveform.audio.recorder.chunk
 
+import com.reactnativeaudiowaveform.Utils
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
@@ -9,14 +10,13 @@ import java.nio.ByteOrder
 class ByteArrayAudioChunk(var bytes: ByteArray) : AudioChunk {
     private var _readCount: Int = 0
 
-    /**
-     * see [AudioChunk.getMaxAmplitude]
-     */
-    override fun getMaxAmplitude(): Int {
-      return toShortArray().maxOrNull()?.toInt() ?: 0
-      //val maxAmp = toShortArray().maxOrNull()?.toInt() ?: 0
-      //return (20 * log10(maxAmp / AudioConstants.REFERENCE_MAX_AMP)).toInt()
-    }
+  /**
+   * see [AudioChunk.getMaxAmplitude]
+   */
+  override fun getMaxAmplitude(): Int {
+    val maxAmplitude = toShortArray().maxOrNull()?.toInt() ?: 0
+    return Utils.amplitudeMagnify(maxAmplitude)
+  }
 
     /**
      * see [AudioChunk.toByteArray]

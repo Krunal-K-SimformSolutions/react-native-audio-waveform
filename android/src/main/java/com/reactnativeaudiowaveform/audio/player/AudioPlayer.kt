@@ -5,9 +5,11 @@ import android.annotation.TargetApi
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import androidx.annotation.FloatRange
 import androidx.core.net.toUri
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.PlaybackException
+import com.google.android.exoplayer2.PlaybackParameters
 import com.google.android.exoplayer2.Player
 import com.reactnativeaudiowaveform.audio.player.config.AudioPlayerConfig
 import com.reactnativeaudiowaveform.audio.player.extensions.recordFile
@@ -22,12 +24,13 @@ import com.reactnativeaudiowaveform.audio.recorder.extensions.subscribeMain
 import com.reactnativeaudiowaveform.audio.recorder.model.DebugState
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.core.ObservableEmitter
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.schedulers.Schedulers
 import java.io.*
 import java.net.URL
 import java.util.concurrent.TimeUnit
-import io.reactivex.rxjava3.core.ObservableEmitter
+
 
 class AudioPlayer : Player.Listener {
     private lateinit var audioPlayer: ExoPlayer
@@ -164,6 +167,18 @@ class AudioPlayer : Player.Listener {
         }
 
         audioPlayer.seekTo(time)
+    }
+
+    /**
+     * Seek playing
+     */
+    fun playbackSpeed(@FloatRange(from = 0.0, fromInclusive = false) speed: Float) {
+      if (!::audioPlayer.isInitialized) {
+        return
+      }
+
+      val param = PlaybackParameters(speed)
+      audioPlayer.playbackParameters = param
     }
 
     /**

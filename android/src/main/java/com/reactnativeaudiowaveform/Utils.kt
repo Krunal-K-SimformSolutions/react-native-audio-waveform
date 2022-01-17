@@ -12,9 +12,20 @@ import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.WritableArray
 import com.reactnativeaudiowaveform.audio.recorder.ffmpeg.model.FFmpegBitRate
 import com.reactnativeaudiowaveform.audio.recorder.ffmpeg.model.FFmpegSamplingRate
+import kotlin.math.log10
 import kotlin.reflect.KClass
 
 object Utils {
+  fun amplitudeMagnify(maxAmplitude: Int): Int {
+    var dB = -160.0
+    val maxAudioSize = 32767.0
+    if (maxAmplitude > 0) {
+      dB = 20 * log10(maxAmplitude / maxAudioSize)
+    }
+    // sound level in decibels, -160 is a silence level
+    return if (65 + dB.toInt() > 1) 65 + dB.toInt() else 1
+  }
+
   fun toWritableArray(@NonNull array: List<Int>): WritableArray {
     val writableArray = Arguments.createArray()
     for (i in array.indices) {

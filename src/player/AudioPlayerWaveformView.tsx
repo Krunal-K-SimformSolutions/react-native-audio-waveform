@@ -21,6 +21,7 @@ function CustomAudioPlayerWaveformView(
     progress,
     maxProgress,
     visibleProgress,
+    playbackSpeed,
     waveWidth,
     gap,
     minHeight,
@@ -71,6 +72,7 @@ function CustomAudioPlayerWaveformView(
       gap={gap}
       minHeight={minHeight}
       radius={radius}
+      playbackSpeed={playbackSpeed}
       backgroundColor={backgroundColor}
       progressColor={progressColor}
       gravity={gravity}

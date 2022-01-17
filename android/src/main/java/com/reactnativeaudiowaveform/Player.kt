@@ -1,6 +1,7 @@
 package com.reactnativeaudiowaveform
 
 import android.content.Context
+import androidx.annotation.FloatRange
 import androidx.annotation.NonNull
 import com.reactnativeaudiowaveform.audio.player.AudioPlayer
 import com.reactnativeaudiowaveform.audio.player.extensions.SingletonHolder
@@ -81,6 +82,13 @@ class Player private constructor(context: Context) {
             throw Exception("Player not initialized")
 
         player.seekTo(time)
+    }
+
+    fun playbackSpeed(@FloatRange(from = 0.0, fromInclusive = false) speed: Float) {
+      if(!this::player.isInitialized)
+        throw Exception("Player not initialized")
+
+      player.playbackSpeed(speed)
     }
 
     fun loadFileAmps(): Observable<List<Int>> {
