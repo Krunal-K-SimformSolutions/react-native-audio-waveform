@@ -9,11 +9,11 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.BitmapShader
 import android.util.AttributeSet
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import com.reactnativeaudiowaveform.R
+import com.reactnativeaudiowaveform.audio.recorder.model.DebugState
 import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.roundToInt
@@ -150,7 +150,7 @@ open class WaveformSeekBar @JvmOverloads constructor(
     }
 
     fun printAmplitudeList() {
-      Log.e("KRUNAL", "sample = ${this.sample.contentToString()}")
+      DebugState.error("loadFileAmps = ${this.sample.contentToString()}")
     }
 
     fun addAmp(amps: Int) {

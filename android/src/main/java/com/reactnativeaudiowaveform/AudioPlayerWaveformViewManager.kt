@@ -1,7 +1,5 @@
 package com.reactnativeaudiowaveform
 
-import android.os.StrictMode
-import android.os.StrictMode.ThreadPolicy
 import androidx.annotation.FloatRange
 import androidx.annotation.NonNull
 import androidx.annotation.Nullable
@@ -17,11 +15,6 @@ import com.reactnativeaudiowaveform.event.player.*
 import com.reactnativeaudiowaveform.visualizer.SeekBarOnProgressChanged
 import com.reactnativeaudiowaveform.visualizer.WaveType
 import com.reactnativeaudiowaveform.visualizer.WaveformSeekBar
-import linc.com.amplituda.Amplituda
-import linc.com.amplituda.AmplitudaProgressListener
-import linc.com.amplituda.Compress
-import linc.com.amplituda.ProgressOperation
-import linc.com.amplituda.exceptions.AmplitudaException
 
 class AudioPlayerWaveformViewManager(reactApplicationContext: ReactApplicationContext) : WaveformViewManager(reactApplicationContext) {
   private lateinit var player: Player
@@ -60,14 +53,14 @@ class AudioPlayerWaveformViewManager(reactApplicationContext: ReactApplicationCo
     super.receiveCommand(root, commandId.toString(), args)
     when (commandId) {
       COMMAND_PLAYER_CREATE -> {
-        val rnDebug = Utils.getArgsValue(args, 1, true, Boolean::class) ?: true
-        setUpPlayer(rnDebug, root)
+        val isDebug = Utils.getArgsValue(args, 1, true, Boolean::class) ?: true
+        setUpPlayer(isDebug, root)
       }
       COMMAND_PLAYER_SOURCE -> {
-        val rnFilepath = Utils.getArgsValue(args, 1, null, String::class)
-        val isFFmpegMode = Utils.getArgsValue(args, 2, false, Boolean::class)?: false
-        if (rnFilepath != null) {
-          setSource(rnFilepath, isFFmpegMode, root)
+        val filepath = Utils.getArgsValue(args, 1, null, String::class)
+        val isAmplitudaMode = Utils.getArgsValue(args, 2, false, Boolean::class)?: false
+        if (filepath != null) {
+          setSource(filepath, isAmplitudaMode, root)
         }
       }
       COMMAND_PLAYER_START -> startPlaying(root)
@@ -148,64 +141,24 @@ class AudioPlayerWaveformViewManager(reactApplicationContext: ReactApplicationCo
     return true
   }
 
-  private fun setSource(@NonNull filePath: String, @NonNull isFFmpegMode: Boolean, @NonNull root: WaveformSeekBar) {
+  private fun setSource(@NonNull filePath: String, @NonNull isAmplitudaMode: Boolean, @NonNull root: WaveformSeekBar) {
     DebugState.debug("setSource -> $filePath")
     try {
       if(checkPlayerInit(root)) {
         player.setSource(filePath)
         dispatchJSEvent(OnAmpsStateEvent(root.id, AmpsState.START))
-        if (!isFFmpegMode) {
-          player.loadFileAmps().subscribe({ amps ->
-            DebugState.debug("loadFileAmps -> amps: $amps")
-            root.setWaveForm(amps)
-            dispatchJSEvent(OnLoadAmpsEvent(root.id, amps))
-            dispatchJSEvent(OnAmpsStateEvent(root.id, AmpsState.SUCCESS))
-          }, {
-            DebugState.error("loadFileAmps", it)
-            dispatchJSEvent(OnErrorEvent(root.id, Exception(it)))
-            dispatchJSEvent(OnAmpsStateEvent(root.id, AmpsState.ERROR))
-          }, {
-            dispatchJSEvent(OnAmpsStateEvent(root.id, AmpsState.COMPLETED))
-          })
-        } else {
-          val policy = ThreadPolicy.Builder().permitAll().build()
-          StrictMode.setThreadPolicy(policy)
-          val amplitudes = Amplituda(reactApplicationContext.applicationContext)
-          amplitudes.processAudio(
-            filePath,
-            Compress.withParams(Compress.AVERAGE, 40),
-            object : AmplitudaProgressListener() {
-              override fun onStartProgress() {
-                super.onStartProgress()
-                DebugState.debug("Start Progress of AMPS")
-              }
-
-              override fun onStopProgress() {
-                super.onStopProgress()
-                DebugState.debug("Stop Progress of AMPS")
-              }
-
-              override fun onProgress(operation: ProgressOperation, progress: Int) {
-                val currentOperation = when (operation) {
-                  ProgressOperation.PROCESSING -> "Process audio"
-                  ProgressOperation.DECODING -> "Decode resource"
-                  ProgressOperation.DOWNLOADING -> "Download audio from url"
-                  else -> ""
-                }
-                DebugState.debug("$currentOperation: $progress%")
-              }
-            }
-          )[{ result ->
-            DebugState.debug("setSource result -> ${result.amplitudesAsList()}")
-            root.setWaveForm(result.amplitudesAsList())
-            dispatchJSEvent(OnLoadAmpsEvent(root.id, result.amplitudesAsList()))
-            dispatchJSEvent(OnAmpsStateEvent(root.id, AmpsState.SUCCESS))
-            root.printAmplitudeList()
-          }, { exception: AmplitudaException ->
-            DebugState.error("setSource exception -> $exception")
-            dispatchJSEvent(OnErrorEvent(root.id, exception))
-          }]
-        }
+        player.loadFileAmps(isAmplitudaMode).subscribe({ amps ->
+          DebugState.debug("loadFileAmps -> amps: $amps")
+          root.setWaveForm(amps)
+          dispatchJSEvent(OnLoadAmpsEvent(root.id, amps))
+          dispatchJSEvent(OnAmpsStateEvent(root.id, AmpsState.SUCCESS))
+        }, {
+          DebugState.error("loadFileAmps", it)
+          dispatchJSEvent(OnErrorEvent(root.id, Exception(it)))
+          dispatchJSEvent(OnAmpsStateEvent(root.id, AmpsState.ERROR))
+        }, {
+          dispatchJSEvent(OnAmpsStateEvent(root.id, AmpsState.COMPLETED))
+        })
       }
     } catch (e: Exception) {
       DebugState.error("setSource", e)

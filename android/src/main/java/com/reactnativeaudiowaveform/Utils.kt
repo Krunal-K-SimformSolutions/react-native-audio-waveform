@@ -4,14 +4,15 @@ import android.media.AudioFormat
 import android.media.MediaRecorder
 import android.os.Build
 import android.util.Base64
-import androidx.annotation.Nullable
 import androidx.annotation.NonNull
+import androidx.annotation.Nullable
 import androidx.annotation.RequiresApi
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.WritableArray
 import com.reactnativeaudiowaveform.audio.recorder.ffmpeg.model.FFmpegBitRate
 import com.reactnativeaudiowaveform.audio.recorder.ffmpeg.model.FFmpegSamplingRate
+import java.net.URLConnection
 import kotlin.math.log10
 import kotlin.reflect.KClass
 
@@ -51,6 +52,11 @@ object Utils {
   fun getExtension(path: String): String? {
     val dotIndex = path.lastIndexOf(".")
     return if(dotIndex == -1) null else path.substring(dotIndex+1)
+  }
+
+  fun isAudioType(path: String?): Boolean {
+    val mimeType: String = URLConnection.guessContentTypeFromName(path)
+    return mimeType.startsWith("audio")
   }
 
   fun <T: Any> getArgsValue(@Nullable args: ReadableArray?, index: Int, defaultValue: T?, clazz: KClass<T>) : T? {

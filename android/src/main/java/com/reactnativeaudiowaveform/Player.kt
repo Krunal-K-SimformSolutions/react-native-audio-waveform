@@ -91,11 +91,11 @@ class Player private constructor(context: Context) {
       player.playbackSpeed(speed)
     }
 
-    fun loadFileAmps(): Observable<List<Int>> {
+    fun loadFileAmps(isAmplitudaMode: Boolean): Observable<List<Int>> {
         if(!this::player.isInitialized)
             throw Exception("Player not initialized")
 
-        return player.loadFileAmps(appContext)
+        return player.loadFileAmps(appContext, isAmplitudaMode)
     }
 
     companion object : SingletonHolder<Player, Context>(::Player)

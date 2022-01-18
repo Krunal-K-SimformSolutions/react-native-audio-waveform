@@ -5,12 +5,16 @@ import android.annotation.TargetApi
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.StrictMode
+import android.util.Log
 import androidx.annotation.FloatRange
 import androidx.core.net.toUri
+import com.arthenica.mobileffmpeg.FFmpeg
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.PlaybackException
 import com.google.android.exoplayer2.PlaybackParameters
 import com.google.android.exoplayer2.Player
+import com.reactnativeaudiowaveform.Utils
 import com.reactnativeaudiowaveform.audio.player.config.AudioPlayerConfig
 import com.reactnativeaudiowaveform.audio.player.extensions.recordFile
 import com.reactnativeaudiowaveform.audio.player.extensions.toMediaSource
@@ -27,6 +31,11 @@ import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.ObservableEmitter
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.schedulers.Schedulers
+import linc.com.amplituda.Amplituda
+import linc.com.amplituda.AmplitudaProgressListener
+import linc.com.amplituda.Compress
+import linc.com.amplituda.ProgressOperation
+import linc.com.amplituda.exceptions.AmplitudaException
 import java.io.*
 import java.net.URL
 import java.util.concurrent.TimeUnit
@@ -229,65 +238,162 @@ class AudioPlayer : Player.Listener {
         }
     }
 
-    fun loadFileAmps(context: Context): Observable<List<Int>> {
-        return Observable.create { subscriber: ObservableEmitter<List<Int>> ->
-            var count: Int
+    @Throws(FileNotFoundException::class, Exception::class)
+    private fun downloadFile(filePath: String) {
+      var count: Int
+      val url = URL(playerConfig.sourceFile!!.path)
+      val conection = url.openConnection()
+      conection.connect()
 
-            var filePath =
-                context.recordFile("${playerConfig.sourceFile!!.parentFile}/${playerConfig.sourceFile!!.nameWithoutExtension}.mp3").path
-            var soundFile: SoundFile? = null
-            try {
-                val url = URL(playerConfig.sourceFile!!.path)
-                val conection = url.openConnection()
-                conection.connect()
+      // this will be useful so that you can show a tipical 0-100%
+      // progress bar
+      //val lenghtOfFile = conection.contentLength
 
-                // this will be useful so that you can show a tipical 0-100%
-                // progress bar
-                //val lenghtOfFile = conection.contentLength
+      // download the file
+      val input: InputStream = BufferedInputStream(
+        url.openStream(),
+        8192
+      )
 
-                // download the file
-                val input: InputStream = BufferedInputStream(
-                    url.openStream(),
-                    8192
-                )
+      // Output stream
+      val output: OutputStream = FileOutputStream(filePath)
+      val data = ByteArray(1024)
+      var total: Long = 0
+      while (input.read(data).also { count = it } != -1) {
+        total += count.toLong()
+        // publishing the progress....
+        // After this onProgressUpdate will be called
+        //publishProgress("" + (total * 100 / lenghtOfFile).toInt())
 
-                // Output stream
-                val output: OutputStream = FileOutputStream(filePath)
-                val data = ByteArray(1024)
-                var total: Long = 0
-                while (input.read(data).also { count = it } != -1) {
-                    total += count.toLong()
-                    // publishing the progress....
-                    // After this onProgressUpdate will be called
-                    //publishProgress("" + (total * 100 / lenghtOfFile).toInt())
+        // writing data to file
+        output.write(data, 0, count)
+      }
 
-                    // writing data to file
-                    output.write(data, 0, count)
-                }
+      // flushing output
+      output.flush()
 
-                // flushing output
-                output.flush()
+      // closing streams
+      output.close()
+      input.close()
+    }
 
-                // closing streams
-                output.close()
-                input.close()
-            } catch (e: Exception) {
-                DebugState.error(TAG, e)
-                filePath = playerConfig.sourceFile!!.path
+    private fun convertFileFFmpeg(filePath: String): String {
+      val extension = Utils.getExtension(playerConfig.sourceFile!!.path) ?: ""
+      if(extension != "mp3") {
+        val commandBuilder = mutableListOf<String>()
+        commandBuilder.addAll(listOf("-y", "-i", playerConfig.sourceFile!!.path))
+        commandBuilder.addAll(listOf("-c:v", "copy", "-c:a", "libmp3lame", "-q:a", "4", "-vn"))
+        commandBuilder.add(filePath)
+        val cmd = commandBuilder.toTypedArray()
+        DebugState.error(cmd.contentToString())
+        try {
+          return when(FFmpeg.execute(cmd)) {
+            0 -> {
+              // SUCCESS
+              filePath
             }
-            try {
-                soundFile = SoundFile.create(filePath, null)
-            } catch (e: IOException) {
-                DebugState.error(TAG, e)
-            } catch (e: SoundFile.InvalidInputException) {
-                DebugState.error(TAG, e)
-            } catch (e: Exception) {
-                DebugState.error(TAG, e)
+            255 -> {
+              // CANCEL
+              playerConfig.sourceFile!!.path
             }
-            subscriber.onNext((soundFile?.frameGains?.toList() ?: mutableListOf<Int>().toList()))
-            subscriber.onComplete()
-        }.subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
+            else -> {
+              // FAILURE
+              playerConfig.sourceFile!!.path
+            }
+          }
+        } catch (ex: Exception) {
+          DebugState.error(ex.message ?: "", ex)
+          return playerConfig.sourceFile!!.path
+        }
+      } else {
+        return playerConfig.sourceFile!!.path
+      }
+    }
+
+    private fun withoutAmplituda(context: Context): Observable<List<Int>> {
+      return Observable.create { subscriber: ObservableEmitter<List<Int>> ->
+
+        var filePath =
+          context.recordFile("${playerConfig.sourceFile!!.parentFile}/${playerConfig.sourceFile!!.nameWithoutExtension}.mp3").path
+        var soundFile: SoundFile? = null
+        try {
+          downloadFile(filePath)
+        } catch (e: Exception) {
+          filePath = convertFileFFmpeg(filePath)
+        }
+
+        try {
+          soundFile = SoundFile.create(filePath, null)
+        } catch (e: IOException) {
+          DebugState.error(TAG, e)
+        } catch (e: SoundFile.InvalidInputException) {
+          DebugState.error(TAG, e)
+        } catch (e: Exception) {
+          DebugState.error(TAG, e)
+        }
+        subscriber.onNext((soundFile?.frameGains?.toList() ?: mutableListOf<Int>().toList()))
+        subscriber.onComplete()
+      }.subscribeOn(Schedulers.io())
+        .observeOn(AndroidSchedulers.mainThread())
+    }
+
+    private fun withAmplituda(context: Context): Observable<List<Int>> {
+      return Observable.create { subscriber: ObservableEmitter<List<Int>> ->
+        val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
+        StrictMode.setThreadPolicy(policy)
+        var filePath =
+          context.recordFile("${playerConfig.sourceFile!!.parentFile}/${playerConfig.sourceFile!!.nameWithoutExtension}.mp3").path
+
+        if(!Utils.isAudioType(playerConfig.sourceFile!!.path)) {
+          try {
+            downloadFile(filePath)
+          } catch (e: Exception) {
+            filePath = convertFileFFmpeg(filePath)
+          }
+        } else {
+          filePath = playerConfig.sourceFile!!.path
+        }
+
+        Log.e("loadFileAmps", filePath)
+        val amplitudes = Amplituda(context)
+        amplitudes.processAudio(
+          filePath,
+          Compress.withParams(Compress.AVERAGE, 20),
+          object : AmplitudaProgressListener() {
+            override fun onStartProgress() {
+              super.onStartProgress()
+              DebugState.debug("Start Progress of AMPS")
+            }
+
+            override fun onStopProgress() {
+              super.onStopProgress()
+              DebugState.debug("Stop Progress of AMPS")
+            }
+
+            override fun onProgress(operation: ProgressOperation, progress: Int) {
+              val currentOperation = when (operation) {
+                ProgressOperation.PROCESSING -> "Process audio"
+                ProgressOperation.DECODING -> "Decode resource"
+                ProgressOperation.DOWNLOADING -> "Download audio from url"
+                else -> ""
+              }
+              DebugState.debug("$currentOperation: $progress%")
+            }
+          }
+        )[{ result ->
+          subscriber.onNext(result.amplitudesAsList())
+          subscriber.onComplete()
+        }, { exception: AmplitudaException ->
+          DebugState.error(exception.message ?: "", exception)
+          subscriber.onNext(mutableListOf<Int>().toList())
+          subscriber.onComplete()
+        }]
+      }.subscribeOn(Schedulers.io())
+        .observeOn(AndroidSchedulers.mainThread())
+    }
+
+    fun loadFileAmps(context: Context, isAmplitudaMode: Boolean): Observable<List<Int>> {
+        return if(isAmplitudaMode) withAmplituda(context) else withoutAmplituda(context)
     }
 
     @TargetApi(Build.VERSION_CODES.M)
