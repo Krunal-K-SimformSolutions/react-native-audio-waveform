@@ -80,10 +80,10 @@ open class FFmpegAudioRecorder(val extension: String, file: File, recordWriter: 
         if (convertConfig.mono) {
             commandBuilder.addAll(listOf("-ac", "1"))
         }
-
         commandBuilder.add(tempFile.path)
 
         val cmd = commandBuilder.toTypedArray()
+        DebugState.error(cmd.contentToString())
 
         try {
             // START

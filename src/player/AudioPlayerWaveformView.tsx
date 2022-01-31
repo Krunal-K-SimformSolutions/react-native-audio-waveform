@@ -44,8 +44,8 @@ function CustomAudioPlayerWaveformView(
     createPlayer: (withDebug: boolean = false) => {
       setUpPlayer(getViewId(refView), withDebug);
     },
-    setSource: (filePath: string, isFFmpegMode?: boolean) => {
-      setSource(getViewId(refView), filePath, isFFmpegMode);
+    setSource: (filePath: string, isAmplitudaMode?: boolean) => {
+      setSource(getViewId(refView), filePath, isAmplitudaMode);
     },
     startPlaying: () => {
       startPlayer(getViewId(refView));

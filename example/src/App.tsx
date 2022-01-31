@@ -1,7 +1,6 @@
 import * as React from 'react';
 import {
   Platform,
-  StyleSheet,
   Text,
   TouchableOpacity,
   View,
@@ -18,6 +17,7 @@ import type {
   AudioRecorderWaveformHandleType,
   AudioPlayerWaveformHandleType
 } from 'react-native-audio-waveform';
+import styles from './AppStyles';
 
 const isAndroid = Platform.OS === 'android';
 
@@ -29,7 +29,7 @@ export default function App() {
   React.useEffect(() => {
     refRecorder?.current?.createRecorder({
       sourceMode: 'auto',
-      isFFmpegMode: false,
+      isFFmpegMode: true,
       audioSourceAndroid: AudioSourceAndroidType.MIC,
       audioEncoderAndroid: AudioEncoderAndroidType.PCM_16BIT,
       frequencyAndroid: 44100,
@@ -61,7 +61,7 @@ export default function App() {
               progressColor={'#FF0000'}
               backgroundColor={'#0000FF'}
               onFinished={({ nativeEvent: { file } }) => {
-                refPlayer?.current?.setSource(file, false);
+                refPlayer?.current?.setSource(file, true);
               }}
             />
           </View>
@@ -87,7 +87,7 @@ export default function App() {
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={() => {
-            refRecorder.current?.startRecording('sample.wav');
+            refRecorder.current?.startRecording('sample.mp3');
           }}
           style={styles.box}
         >
@@ -159,9 +159,7 @@ export default function App() {
         >
           <Text style={styles.boxText}>Stop</Text>
         </TouchableOpacity>
-      </View>
-      <View style={styles.boxContainer}>
-        <TouchableOpacity
+         <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => {
               if(playbackSpeed === 1.0) {
@@ -177,46 +175,6 @@ export default function App() {
             <Text style={styles.boxText}>{playbackSpeed === 1.25 ? 1.5 : playbackSpeed}x</Text>
         </TouchableOpacity>
       </View>
-        
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  waveContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: 10
-  },
-  box: {
-    width: 90,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: 'green',
-    borderColor: 'blue',
-    borderWidth: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  boxText: {
-    fontSize: 14,
-    color: 'white',
-  },
-  boxContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 10,
-  },
-  optionText: {
-    fontSize: 28,
-    color: 'red',
-    paddingVertical: 10,
-  },
-});

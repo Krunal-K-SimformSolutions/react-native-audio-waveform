@@ -21,12 +21,12 @@ export const setUpPlayer = (viewId: number | null, withDebug: boolean) =>
     [viewId, withDebug]
   );
 
-export const setSource = (viewId: number | null, filePath: string, isFFmpegMode?: boolean) =>
+export const setSource = (viewId: number | null, filePath: string, isAmplitudaMode?: boolean) =>
   UIManager.dispatchViewManagerCommand(
     viewId,
     // we are calling the 'source' command for set source
     UIManager.getViewManagerConfig('AudioPlayerWaveformView').Commands.source,
-    [viewId, filePath, isFFmpegMode]
+    [viewId, filePath, isAmplitudaMode]
   );
 
 export const startPlayer = (viewId: number | null) =>
