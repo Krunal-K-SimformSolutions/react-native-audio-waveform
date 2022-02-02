@@ -11,6 +11,10 @@
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTRootView.h>
 
+#if RCT_DEV
+   #import <React/RCTDevLoadingView.h>
+#endif
+
 #ifdef FB_SONARKIT_ENABLED
 #import <FlipperKit/FlipperClient.h>
 #import <FlipperKitLayoutPlugin/FlipperKitLayoutPlugin.h>
@@ -37,9 +41,14 @@ static void InitializeFlipper(UIApplication *application) {
     InitializeFlipper(application);
   #endif
   RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self launchOptions:launchOptions];
+#if RCT_DEV
+  [bridge moduleForClass:[RCTDevLoadingView class]];
+  #endif
   RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge
                                                    moduleName:@"AudioWaveformExample"
                                             initialProperties:nil];
+  
+  
 
   rootView.backgroundColor = [[UIColor alloc] initWithRed:1.0f green:1.0f blue:1.0f alpha:1];
 

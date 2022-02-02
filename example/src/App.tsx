@@ -62,8 +62,8 @@ export default function App() {
             console.log({ error })
           }}
         onBuffer={({ nativeEvent: { maxAmplitude, bufferData, readCount } }) => {
-           const chunk = Buffer.from(bufferData, 'base64');
-            console.log({ bufferData: chunk, maxAmplitude,  })
+          //  const chunk = Buffer.from(bufferData, 'base64');
+          //   console.log({ bufferData: chunk, maxAmplitude,  })
           }}
         onFFmpegState={({ nativeEvent: { ffmpegState } }) => {
             console.log({ ffmpegState })
@@ -72,8 +72,8 @@ export default function App() {
             console.log({ file, duration })
             refPlayer?.current?.setSource(file, false);
           }}
-        onProgress={({ nativeEvent: { currentTime, maxTime, timeString } }) => {
-            console.log({ currentTime, maxTime, timeString })
+        onProgress={({ nativeEvent: { currentTime, maxTime } }) => {
+            console.log({ currentTime, maxTime })
           }}
         onRecorderState={({ nativeEvent: { recordState } }) => {
             console.log({ recordState })

@@ -13,7 +13,7 @@ Pod::Spec.new do |s|
   s.platforms    = { :ios => "10.0" }
   s.source       = { :git => "https://github.com/Krunal-K-SimformSolutions/react-native-audio-waveform.git", :tag => "#{s.version}" }
 
-  s.source_files = "ios/**/*.{h,m,mm,swift}"
+  s.source_files = "ios/**/*.{h,m,mm,swift,xib}"
 
   s.dependency "React-Core"
 end
