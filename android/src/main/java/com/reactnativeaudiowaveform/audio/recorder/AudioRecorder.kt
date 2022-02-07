@@ -1,12 +1,7 @@
 package com.reactnativeaudiowaveform.audio.recorder
 
-import android.Manifest
-import android.annotation.TargetApi
-import android.content.Context
-import android.content.pm.PackageManager
 import android.media.MediaMetadataRetriever
 import android.media.audiofx.NoiseSuppressor
-import android.os.Build
 import com.reactnativeaudiowaveform.Utils
 import com.reactnativeaudiowaveform.audio.recorder.config.AudioRecorderConfig
 import com.reactnativeaudiowaveform.audio.recorder.constants.LogConstants
@@ -75,20 +70,7 @@ class AudioRecorder {
     /**
      * Start Recording
      */
-    fun startRecording(context: Context) {
-        val granted: Boolean = if (Build.VERSION.SDK_INT >= 23) {
-            NEEDED_PERMISSIONS.all {
-                checkPermissionGranted(context, it)
-            }
-        } else {
-            true
-        }
-
-        if (!granted) {
-            DebugState.debug(LogConstants.PERMISSION_DENIED)
-            throw RuntimeException(LogConstants.PERMISSION_DENIED)
-        }
-
+    fun startRecording() {
         audioRecorder.startRecording()
         recordStateChangeListener?.onState(RecordState.START)
 
@@ -171,10 +153,6 @@ class AudioRecorder {
     fun retrieveMetadata(file: File): RecordMetadata {
         return retrieveFileMetadata(file)
     }
-
-    @TargetApi(Build.VERSION_CODES.M)
-    private fun checkPermissionGranted(context: Context, permission: String) =
-        context.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
 
     private fun findAudioRecorder(recordFinder: Class<*>) {
         try {
@@ -267,13 +245,5 @@ class AudioRecorder {
         }
         recordMetadata = RecordMetadata(file, duration)
         return recordMetadata
-    }
-
-    companion object {
-        val NEEDED_PERMISSIONS = arrayOf(
-            Manifest.permission.RECORD_AUDIO,
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-        )
     }
 }

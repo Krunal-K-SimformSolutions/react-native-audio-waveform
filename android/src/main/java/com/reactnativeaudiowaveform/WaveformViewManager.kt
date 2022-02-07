@@ -4,10 +4,10 @@ import android.graphics.Color
 import androidx.annotation.NonNull
 import androidx.annotation.Nullable
 import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.uimanager.LayoutShadowNode
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.annotations.ReactProp
-import com.facebook.react.uimanager.annotations.ReactPropGroup
 import com.facebook.react.uimanager.events.Event
 import com.facebook.react.uimanager.events.EventDispatcher
 import com.reactnativeaudiowaveform.audio.recorder.model.DebugState
@@ -27,6 +27,14 @@ abstract class WaveformViewManager (val reactApplicationContext: ReactApplicatio
     return waveformSeekBar
   }
 
+  override fun createShadowNodeInstance(): LayoutShadowNode {
+    return WaveformViewShadowNode()
+  }
+
+  override fun createShadowNodeInstance(context: ReactApplicationContext): LayoutShadowNode {
+    return WaveformViewShadowNode()
+  }
+
   abstract fun initView(reactContext: ThemedReactContext, waveformSeekBar: WaveformSeekBar)
 
   fun dispatchJSEvent(@NonNull event: Event<*>) {
@@ -34,19 +42,6 @@ abstract class WaveformViewManager (val reactApplicationContext: ReactApplicatio
       throw Exception(Constant.NOT_INIT_EVENT_DISPATCHER)
     }
     localEventDispatcher.dispatchEvent(event)
-  }
-
-  @ReactPropGroup(names = ["width", "height", "backgroundColor"], customType = "style")
-  fun setStyle(view: WaveformSeekBar, index: Int, value: Int) {
-    if(index == 0) {
-      view.layoutParams?.width = Utils.dp(view.context, value.toFloat()).toInt()
-    }
-    if(index == 1) {
-      view.layoutParams?.height = Utils.dp(view.context, value.toFloat()).toInt()
-    }
-    if(index == 2) {
-      view.setBackgroundColor(value)
-    }
   }
 
   @ReactProp(name = "visibleProgress", defaultFloat = 50f)
@@ -102,35 +97,35 @@ abstract class WaveformViewManager (val reactApplicationContext: ReactApplicatio
     DebugState.debug("setWaveGravity -> gravity: $gravity")
   }
 
-  @ReactProp(name = "backgroundColor")
+  @ReactProp(name = "barBgColor")
   fun setWaveBackgroundColor(view: WaveformSeekBar, @Nullable backgroundColor: String?) {
     if(backgroundColor != null) {
       view.waveBackgroundColor = Color.parseColor(backgroundColor)
     } else {
       view.waveBackgroundColor = Color.BLACK
     }
-    DebugState.debug("setWaveBackgroundColor -> backgroundColor: $backgroundColor")
+    DebugState.debug("setWaveBackgroundColor -> barBgColor: $backgroundColor")
   }
 
-  @ReactProp(name = "backgroundColor", defaultInt = Color.BLACK)
+  @ReactProp(name = "barBgColor", defaultInt = Color.BLACK)
   fun setWaveBackgroundColor(view: WaveformSeekBar, @NonNull backgroundColor: Int) {
     view.waveBackgroundColor = backgroundColor
-    DebugState.debug("setWaveBackgroundColor -> backgroundColor: $backgroundColor")
+    DebugState.debug("setWaveBackgroundColor -> barBgColor: $backgroundColor")
   }
 
-  @ReactProp(name = "progressColor")
+  @ReactProp(name = "barPgColor")
   fun setWaveProgressColor(view: WaveformSeekBar, @Nullable progressColor: String?) {
     if(progressColor != null) {
       view.waveProgressColor = Color.parseColor(progressColor)
     } else {
       view.waveProgressColor = Color.RED
     }
-    DebugState.debug("setWaveProgressColor -> progressColor: $progressColor")
+    DebugState.debug("setWaveProgressColor -> barPgColor: $progressColor")
   }
 
-  @ReactProp(name = "progressColor", defaultInt = Color.RED)
+  @ReactProp(name = "barPgColor", defaultInt = Color.RED)
   fun setWaveProgressColor(view: WaveformSeekBar, @NonNull progressColor: Int) {
     view.waveProgressColor = progressColor
-    DebugState.debug("setWaveProgressColor -> progressColor: $progressColor")
+    DebugState.debug("setWaveProgressColor -> barPgColor: $progressColor")
   }
 }

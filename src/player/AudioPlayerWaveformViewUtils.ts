@@ -13,12 +13,12 @@ export const NativeAudioPlayerWaveformView =
         throw new Error(LINKING_ERROR);
       };
 
-export const setUpPlayer = (viewId: number | null, withDebug: boolean) =>
+export const setUpPlayer = (viewId: number | null, withDebug: boolean, subscriptionDurationInMilliseconds: number) =>
   UIManager.dispatchViewManagerCommand(
     viewId,
     // we are calling the 'create' command for init player
     UIManager.getViewManagerConfig('AudioPlayerWaveformView').Commands.create,
-    [viewId, withDebug]
+    [viewId, withDebug, subscriptionDurationInMilliseconds]
   );
 
 export const setSource = (viewId: number | null, filePath: string, isAmplitudaMode?: boolean) =>

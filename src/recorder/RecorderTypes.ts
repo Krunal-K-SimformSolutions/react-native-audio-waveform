@@ -84,4 +84,5 @@ export type AudioRecordConfig = {
   frequencyAndroid?: number;
   withDebug?: boolean;
   ffmpegConvertAndroid?: FFmpegConvert;
+  subscriptionDurationInMilliseconds?: number;
 };

@@ -7,6 +7,7 @@ import com.reactnativeaudiowaveform.audio.player.AudioPlayer
 import com.reactnativeaudiowaveform.audio.player.extensions.SingletonHolder
 import com.reactnativeaudiowaveform.audio.player.extensions.recordFile
 import com.reactnativeaudiowaveform.audio.player.model.PlayState
+import com.reactnativeaudiowaveform.audio.recorder.constants.AudioConstants
 import io.reactivex.rxjava3.core.Observable
 import java.io.File
 import java.lang.Exception
@@ -16,12 +17,14 @@ class Player private constructor(context: Context) {
     private lateinit var player: AudioPlayer
     private var sourceFilePath: File? = null
     private var withDebug = false
+    private var withRefreshTimerMillis: Long = AudioConstants.SUBSCRIPTION_DURATION_IN_MILLISECONDS
 
     var onProgress: ((Long, Boolean) -> Unit)? = null
     var onPlayState: ((PlayState) -> Unit)? = null
 
-    fun init(isDebug: Boolean = false): Player {
+    fun init(isDebug: Boolean = false, subscriptionDurationInMilliseconds: Long = AudioConstants.SUBSCRIPTION_DURATION_IN_MILLISECONDS): Player {
         this.withDebug = isDebug
+        this.withRefreshTimerMillis = subscriptionDurationInMilliseconds
         this.player = AudioPlayer()
 
         return this
@@ -35,6 +38,7 @@ class Player private constructor(context: Context) {
 
         player.create(appContext) {
             this.sourceFile = sourceFilePath
+            this.refreshTimerMillis = withRefreshTimerMillis
             this.timerCountCallback = onProgress
             this.debugMode = withDebug
         }
@@ -46,7 +50,7 @@ class Player private constructor(context: Context) {
         if(!this::player.isInitialized)
             throw Exception("Player not initialized")
 
-        player.startPlaying(appContext)
+        player.startPlaying()
     }
 
     fun stopPlaying() {

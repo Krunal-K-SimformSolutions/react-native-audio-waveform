@@ -27,8 +27,8 @@ export type AudioPlayerWaveformViewProps = Partial<{
   minHeight: number;
   radius: number;
   gravity: 'top' | 'center' | 'bottom';
-  backgroundColor: string | number;
-  progressColor: string | number;
+  barBgColor: string | number;
+  barPgColor: string | number;
   style: StyleProp<ViewStyle>;
   onSeekChange: OnSeekChangeEvent;
   onError: OnErrorEvent;
@@ -39,7 +39,7 @@ export type AudioPlayerWaveformViewProps = Partial<{
 }>;
 
 export type AudioPlayerWaveformHandleType = Required<{
-  createPlayer: (withDebug: boolean) => void;
+  createPlayer: (withDebug: boolean, subscriptionDurationInMilliseconds: number) => void;
   setSource: (filePath: string, isAmplitudaMode?: boolean) => void;
   startPlaying: () => void;
   pausePlaying: () => void;

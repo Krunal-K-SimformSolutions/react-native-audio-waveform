@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Buffer } from 'buffer';
 import {
   AudioRecorderWaveformView,
   AudioPlayerWaveformView,
@@ -19,8 +20,6 @@ import type {
 } from 'react-native-audio-waveform';
 import styles from './AppStyles';
 
-const isAndroid = Platform.OS === 'android';
-
 export default function App() {
   const [playbackSpeed, setPlaybackSpeed] = React.useState(1)
   const refRecorder = React.useRef<AudioRecorderWaveformHandleType>();
@@ -29,7 +28,7 @@ export default function App() {
   React.useEffect(() => {
     refRecorder?.current?.createRecorder({
       sourceMode: 'auto',
-      isFFmpegMode: true,
+      isFFmpegMode: false,
       audioSourceAndroid: AudioSourceAndroidType.MIC,
       audioEncoderAndroid: AudioEncoderAndroidType.PCM_16BIT,
       frequencyAndroid: 44100,
@@ -38,56 +37,90 @@ export default function App() {
         bitRate: FFmpegBitRate.def,
         samplingRate: FFmpegSamplingRate.ORIGINAL,
         mono: true
-      }
+      },
+      subsDurationMillis: 500
     });
   }, [refRecorder]);
 
   React.useEffect(() => {
-    refPlayer?.current?.createPlayer(true);
+    refPlayer?.current?.createPlayer(true, 500);
   }, [refPlayer]);
 
   return (
     <View style={styles.container}>
-      {isAndroid && (
-        <View style={styles.waveContainer}>
-            <AudioRecorderWaveformView
-              ref={refRecorder}
-              style={{ width: 400, height: 200 }}
-              gap={3}
-              waveWidth={6}
-              radius={3}
-              minHeight={1}
-              gravity={'center'}
-              progressColor={'#FF0000'}
-              backgroundColor={'#0000FF'}
-              onFinished={({ nativeEvent: { file } }) => {
-                refPlayer?.current?.setSource(file, true);
-              }}
-            />
-          </View>
-      )}
-      {isAndroid && (
-        <View style={styles.waveContainer}>
-          <AudioPlayerWaveformView 
-            ref={refPlayer} 
-            style={{ width: 400, height: 200 }}
-            gap={3}
-            waveWidth={6}
-            radius={3}
-            minHeight={1}
-            gravity={'center'}
-            playbackSpeed={playbackSpeed}
-            progressColor={'#FF0000'}
-            backgroundColor={'#00FF00'} />
-          </View>
-      )}
-
+    <View style={styles.waveContainer}>
+      <AudioRecorderWaveformView
+        ref={refRecorder}
+        style={{ width: 350, height: 100 }}
+        gap={3}
+        waveWidth={3}
+        radius={3}
+        minHeight={1}
+        gravity={'center'}
+        barPgColor={'#FF0000'}
+        barBgColor={'#0000FF'}
+        onError={({ nativeEvent: { error } }) => {
+            console.log({ error })
+          }}
+        onBuffer={({ nativeEvent: { maxAmplitude, bufferData, readCount } }) => {
+           const chunk = Buffer.from(bufferData, 'base64');
+            console.log({ bufferData: chunk, maxAmplitude,  })
+          }}
+        onFFmpegState={({ nativeEvent: { ffmpegState } }) => {
+            console.log({ ffmpegState })
+          }}
+        onFinished={({ nativeEvent: { file, duration } }) => {
+            console.log({ file, duration })
+            // refPlayer?.current?.setSource(file, false);
+          }}
+        onProgress={({ nativeEvent: { currentTime, maxTime, timeString } }) => {
+            console.log({ currentTime, maxTime, timeString })
+          }}
+        onRecorderState={({ nativeEvent: { recordState } }) => {
+            console.log({ recordState })
+          }}
+        onSilentDetected={({ nativeEvent: { time } }) => {
+            console.log({ time })
+          }}
+      />
+    </View>
+    <View style={styles.waveContainer}>
+      <AudioPlayerWaveformView 
+        ref={refPlayer} 
+        style={{ width: 400, height: 200 }}
+        gap={3}
+        waveWidth={6}
+        radius={3}
+        minHeight={1}
+        gravity={'center'}
+        playbackSpeed={playbackSpeed}
+        barPgColor={'#FF0000'}
+        barBgColor={'#00FF00'}
+        onSeekChange={({ nativeEvent: { progress,  fromUser } }) => {
+          console.log({ progress, fromUser })
+        }}
+        onError={({ nativeEvent: { error } }) => {
+            console.log({ error })
+          }}
+        onPlayerState={({ nativeEvent: { playState } }) => {
+            console.log({ playState })
+          }}
+        onProgress={({ nativeEvent: { currentTime,  maxTime } }) => {
+            console.log({ currentTime, maxTime })
+          }}
+        onLoadAmps={({ nativeEvent: { loadAmps } }) => {
+            console.log({ loadAmps })
+          }}
+        onAmpsState={({ nativeEvent: { ampsState } }) => {
+            console.log({ ampsState })
+          }} />
+      </View>
       <Text style={styles.optionText}>Recorder</Text>
       <View style={styles.boxContainer}>
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={() => {
-            refRecorder.current?.startRecording('sample.mp3');
+            refRecorder.current?.startRecording('sample.wav');
           }}
           style={styles.box}
         >

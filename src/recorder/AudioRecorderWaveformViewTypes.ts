@@ -39,8 +39,8 @@ export type AudioRecorderWaveformViewProps = Partial<{
   minHeight: number;
   radius: number;
   gravity: 'top' | 'center' | 'bottom';
-  backgroundColor: string | number;
-  progressColor: string | number;
+  barBgColor: string | number;
+  barPgColor: string | number;
   style: StyleProp<ViewStyle>;
   onSeekChange: OnSeekChangeEvent;
   onError: OnErrorEvent;

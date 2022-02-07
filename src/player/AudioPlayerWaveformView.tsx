@@ -26,8 +26,8 @@ function CustomAudioPlayerWaveformView(
     gap,
     minHeight,
     radius,
-    backgroundColor,
-    progressColor,
+    barBgColor,
+    barPgColor,
     gravity = 'center',
     onSeekChange,
     onError,
@@ -41,8 +41,8 @@ function CustomAudioPlayerWaveformView(
   const refView = useRef();
 
   useImperativeHandle(ref, () => ({
-    createPlayer: (withDebug: boolean = false) => {
-      setUpPlayer(getViewId(refView), withDebug);
+    createPlayer: (withDebug: boolean = false, subscriptionDurationInMilliseconds: number) => {
+      setUpPlayer(getViewId(refView), withDebug, subscriptionDurationInMilliseconds);
     },
     setSource: (filePath: string, isAmplitudaMode?: boolean) => {
       setSource(getViewId(refView), filePath, isAmplitudaMode);
@@ -73,8 +73,8 @@ function CustomAudioPlayerWaveformView(
       minHeight={minHeight}
       radius={radius}
       playbackSpeed={playbackSpeed}
-      backgroundColor={backgroundColor}
-      progressColor={progressColor}
+      barBgColor={barBgColor}
+      barPgColor={barPgColor}
       gravity={gravity}
       onSeekChange={onSeekChange}
       onError={onError}
