@@ -8,12 +8,13 @@
     "npm-i": "yarn install",
     "pod-install": "cd ios && pod install && cd ..",
     "jetify": "npx jetify",
-    "setup": "npm run npm-i && npm run jetify",
+    "setup": "npm run npm-i && npm run jetify && npm run pod-install",
     "android-clean": "cd android && ./gradlew cleanBuildCache && cd .. ",
     "android": "react-native run-android",
     "ios": "react-native run-ios"
   },
   "dependencies": {
+    "buffer": "^6.0.3",
     "react": "16.13.1",
     "react-native": "0.63.4"
   },

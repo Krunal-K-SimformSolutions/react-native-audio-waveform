@@ -7,6 +7,7 @@ import com.reactnativeaudiowaveform.audio.player.extensions.recordFile
 import com.reactnativeaudiowaveform.audio.recorder.AudioRecorder
 import com.reactnativeaudiowaveform.audio.recorder.chunk.AudioChunk
 import com.reactnativeaudiowaveform.audio.recorder.config.AudioRecordConfig
+import com.reactnativeaudiowaveform.audio.recorder.constants.AudioConstants
 import com.reactnativeaudiowaveform.audio.recorder.ffmpeg.FFmpegAudioRecorder
 import com.reactnativeaudiowaveform.audio.recorder.ffmpeg.FFmpegRecordFinder
 import com.reactnativeaudiowaveform.audio.recorder.ffmpeg.config.FFmpegConvertConfig
@@ -23,6 +24,7 @@ class Recorder private constructor(context: Context) {
     private val appContext = context
     private var withFFmpegMode = false
     private var withDebug = false
+    private var withRefreshTimerMillis: Long = AudioConstants.SUBSCRIPTION_DURATION_IN_MILLISECONDS
 
     private lateinit var recorder: AudioRecorder
     private lateinit var config: AudioRecordConfig
@@ -41,11 +43,13 @@ class Recorder private constructor(context: Context) {
       @NonNull sourceMode: String,
       @NonNull isFFmpegMode: Boolean = false,
       @NonNull isDebug: Boolean = false,
+      @NonNull subscriptionDurationInMilliseconds: Long = AudioConstants.SUBSCRIPTION_DURATION_IN_MILLISECONDS,
       @NonNull config: AudioRecordConfig,
       @NonNull convertConfig: FFmpegConvertConfig
     ): Recorder {
       this.withDebug = isDebug
       this.withFFmpegMode = isFFmpegMode
+      this.withRefreshTimerMillis = subscriptionDurationInMilliseconds
       this.recorder = AudioRecorder()
 
       this.config = config
@@ -70,6 +74,7 @@ class Recorder private constructor(context: Context) {
             this.destFile = sourceFilePath
             this.recordConfig = config
             this.audioSource = source
+            this.refreshTimerMillis = withRefreshTimerMillis
             this.chunkAvailableCallback = onRawBuffer
             this.silentDetectedCallback = onSilentDetected
             this.timerCountCallback = onProgress
@@ -96,7 +101,7 @@ class Recorder private constructor(context: Context) {
         if(!this::recorder.isInitialized)
             throw Exception(Constant.NOT_INIT_RECORDER)
 
-        recorder.startRecording(appContext)
+        recorder.startRecording()
     }
 
     fun stopRecording() {

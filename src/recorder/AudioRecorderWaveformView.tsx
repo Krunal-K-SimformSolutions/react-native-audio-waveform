@@ -25,8 +25,8 @@ function CustomAudioRecorderWaveformView(
     gap,
     minHeight,
     radius,
-    backgroundColor,
-    progressColor,
+    barBgColor,
+    barPgColor,
     gravity = 'center',
     onSeekChange,
     onError,
@@ -70,8 +70,8 @@ function CustomAudioRecorderWaveformView(
       gap={gap}
       minHeight={minHeight}
       radius={radius}
-      backgroundColor={backgroundColor}
-      progressColor={progressColor}
+      barBgColor={barBgColor}
+      barPgColor={barPgColor}
       gravity={gravity}
       onSeekChange={onSeekChange}
       onError={onError}

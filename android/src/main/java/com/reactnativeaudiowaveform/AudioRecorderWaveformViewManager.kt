@@ -1,11 +1,14 @@
 package com.reactnativeaudiowaveform
 
+import android.Manifest
 import android.media.AudioFormat
 import androidx.annotation.NonNull
 import androidx.annotation.Nullable
+import androidx.appcompat.app.AlertDialog
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.common.MapBuilder
+import com.facebook.react.modules.core.PermissionListener
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerModule
 import com.reactnativeaudiowaveform.audio.recorder.config.AudioRecordConfig
@@ -15,12 +18,15 @@ import com.reactnativeaudiowaveform.audio.recorder.ffmpeg.model.FFmpegBitRate
 import com.reactnativeaudiowaveform.audio.recorder.ffmpeg.model.FFmpegSamplingRate
 import com.reactnativeaudiowaveform.audio.recorder.model.DebugState
 import com.reactnativeaudiowaveform.event.recorder.*
+import com.reactnativeaudiowaveform.permission.RuntimePermission
+import com.reactnativeaudiowaveform.permission.callback.PermissionCallback
 import com.reactnativeaudiowaveform.visualizer.SeekBarOnProgressChanged
 import com.reactnativeaudiowaveform.visualizer.WaveType
 import com.reactnativeaudiowaveform.visualizer.WaveformSeekBar
 
-class AudioRecorderWaveformViewManager(reactApplicationContext: ReactApplicationContext) : WaveformViewManager(reactApplicationContext) {
+class AudioRecorderWaveformViewManager(reactApplicationContext: ReactApplicationContext) : WaveformViewManager(reactApplicationContext), PermissionListener {
   private lateinit var recorder: Recorder
+  private lateinit var runtimePermission: RuntimePermission
 
   companion object {
     const val COMMAND_RECORDER_CREATE = 1
@@ -28,6 +34,7 @@ class AudioRecorderWaveformViewManager(reactApplicationContext: ReactApplication
     const val COMMAND_RECORDER_PAUSE = 3
     const val COMMAND_RECORDER_RESUME = 4
     const val COMMAND_RECORDER_STOP = 5
+
     const val TAG = "AudioRecorderWaveformView"
   }
 
@@ -64,10 +71,10 @@ class AudioRecorderWaveformViewManager(reactApplicationContext: ReactApplication
         val bitRate: FFmpegBitRate  = Utils.getFFmpegBitRate(Utils.getArgsValue(args, 7, null, Int::class))
         val samplingRate: FFmpegSamplingRate = Utils.getFFmpegSamplingRate(Utils.getArgsValue(args, 8, null, Int::class))
         val mono: Boolean  = Utils.getArgsValue(args, 9, true, Boolean::class) ?: true
-
+        val subscriptionDurationInMilliseconds = Utils.getArgsValue(args, 10, null, Int::class)?.toLong() ?: AudioConstants.SUBSCRIPTION_DURATION_IN_MILLISECONDS
         val config = AudioRecordConfig(audioSource, audioEncoding, channel, frequency)
         val convertConfig = FFmpegConvertConfig(bitRate, samplingRate, mono)
-        setUpRecorder(sourceMode, isFFmpegMode, isDebug, config, convertConfig, root)
+        setUpRecorder(sourceMode, isFFmpegMode, isDebug, subscriptionDurationInMilliseconds, config, convertConfig, root)
       }
       COMMAND_RECORDER_START -> {
         val filepath = Utils.getArgsValue(args, 1, null, String::class)
@@ -95,6 +102,16 @@ class AudioRecorderWaveformViewManager(reactApplicationContext: ReactApplication
       .build()
   }
 
+  override fun onRequestPermissionsResult(
+    requestCode: Int,
+    permissions: Array<String>,
+    grantResults: IntArray
+  ): Boolean {
+    DebugState.debug("onRequestPermissionsResult -> $requestCode,${permissions},${grantResults}")
+    runtimePermission.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    return false
+  }
+
   override fun initView(@NonNull reactContext: ThemedReactContext, @NonNull waveformSeekBar: WaveformSeekBar) {
     localEventDispatcher = reactContext.getNativeModule(UIManagerModule::class.java).eventDispatcher
 
@@ -113,15 +130,16 @@ class AudioRecorderWaveformViewManager(reactApplicationContext: ReactApplication
     @NonNull sourceMode: String,
     @NonNull isFFmpegMode: Boolean,
     @NonNull isDebug: Boolean,
+    @NonNull subscriptionDurationInMilliseconds: Long,
     @NonNull config: AudioRecordConfig,
     @NonNull convertConfig: FFmpegConvertConfig,
     @NonNull root: WaveformSeekBar
   ) {
     DebugState.state = isDebug
-    DebugState.debug("setUpRecorder -> $sourceMode $isFFmpegMode $isDebug $config $convertConfig")
+    DebugState.debug("setUpRecorder -> $sourceMode $isFFmpegMode $isDebug $subscriptionDurationInMilliseconds $config $convertConfig")
     try {
       recorder = Recorder.getInstance(reactApplicationContext.applicationContext)
-        .init(sourceMode, isFFmpegMode, isDebug, config, convertConfig).apply {
+        .init(sourceMode, isFFmpegMode, isDebug, subscriptionDurationInMilliseconds, config, convertConfig).apply {
           onRawBuffer = {
             DebugState.debug("onRawBuffer -> audioChunk: ${it.getMaxAmplitude()}")
             root.addAmp(it.getMaxAmplitude())
@@ -163,17 +181,55 @@ class AudioRecorderWaveformViewManager(reactApplicationContext: ReactApplication
     return true
   }
 
+  private fun setPermissionResult(it: PermissionCallback, @NonNull filePath: String, @NonNull root: WaveformSeekBar) {
+    DebugState.debug("setPermissionResult -> $filePath")
+    with(it) {
+      if (hasAccepted()) {
+        try {
+          if(checkRecorderInit(root)) {
+            recorder.setSource(filePath)
+            recorder.startRecording()
+          }
+        } catch (e: Exception) {
+          DebugState.error("setPermissionResult", e)
+          dispatchJSEvent(OnErrorEvent(root.id, e))
+        }
+      }
+
+      if (hasDenied()) {
+        AlertDialog.Builder(root.context)
+          .setTitle(Constant.REQUIRED_PERMISSION)
+          .setMessage(Constant.REQUIRED_PERMISSION_DENIED)
+          .setPositiveButton(android.R.string.ok) { _, _ ->
+            askAgain()
+          }
+          .setNegativeButton(android.R.string.cancel) { dialog, _ ->
+            dialog.dismiss()
+          }
+          .show()
+      }
+
+      if (hasForeverDenied()) {
+        AlertDialog.Builder(root.context)
+          .setTitle(Constant.REQUIRED_PERMISSION)
+          .setMessage(Constant.REQUIRED_PERMISSION_FOREVERDENIED)
+          .setPositiveButton(android.R.string.ok) { _, _ ->
+            goToSettings()
+          }
+          .setNegativeButton(android.R.string.cancel) { dialog, _ ->
+            dialog.dismiss()
+          }
+          .show()
+      }
+    }
+  }
+
   private fun startRecording(@NonNull filePath: String, @NonNull root: WaveformSeekBar) {
     DebugState.debug("startRecording -> $filePath")
-    try {
-      if(checkRecorderInit(root)) {
-        recorder.setSource(filePath)
-        recorder.startRecording()
-      }
-    } catch (e: Exception) {
-      DebugState.error("startRecording", e)
-      dispatchJSEvent(OnErrorEvent(root.id, e))
-    }
+    runtimePermission = RuntimePermission(reactApplicationContext.currentActivity, this)
+      .request(Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE)
+      .onResponse { setPermissionResult(it, filePath, root) }
+    runtimePermission.ask()
   }
 
   private fun pauseRecording(@NonNull root: WaveformSeekBar) {

@@ -1,6 +1,5 @@
 package com.reactnativeaudiowaveform.audio.player
 
-import android.Manifest
 import android.annotation.TargetApi
 import android.content.Context
 import android.content.pm.PackageManager
@@ -39,7 +38,6 @@ import linc.com.amplituda.exceptions.AmplitudaException
 import java.io.*
 import java.net.URL
 import java.util.concurrent.TimeUnit
-
 
 class AudioPlayer : Player.Listener {
     private lateinit var audioPlayer: ExoPlayer
@@ -81,22 +79,9 @@ class AudioPlayer : Player.Listener {
     /**
      * Start Recording
      */
-    fun startPlaying(context: Context) {
+    fun startPlaying() {
         if (!::audioPlayer.isInitialized) {
             return
-        }
-
-        val granted: Boolean = if (Build.VERSION.SDK_INT >= 23) {
-            NEEDED_PERMISSIONS.all {
-                checkPermissionGranted(context, it)
-            }
-        } else {
-            true
-        }
-
-        if (!granted) {
-            DebugState.debug(LogConstants.PERMISSION_DENIED)
-            throw RuntimeException(LogConstants.PERMISSION_DENIED)
         }
 
         audioPlayer.play()
@@ -476,9 +461,5 @@ class AudioPlayer : Player.Listener {
 
     companion object {
       val TAG = "AudioPlayer"
-        val NEEDED_PERMISSIONS = arrayOf(
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-        )
     }
 }

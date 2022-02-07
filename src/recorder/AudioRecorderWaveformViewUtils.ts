@@ -30,6 +30,7 @@ export const setUpRecorder = (
       samplingRate: undefined,
       mono: undefined,
     },
+    subscriptionDurationInMilliseconds,
   } = config || {};
   UIManager.dispatchViewManagerCommand(
     viewId,
@@ -46,6 +47,7 @@ export const setUpRecorder = (
       bitRate,
       samplingRate,
       mono,
+      subscriptionDurationInMilliseconds,
     ]
   );
 };

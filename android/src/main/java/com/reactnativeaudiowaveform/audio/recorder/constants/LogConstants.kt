@@ -15,6 +15,5 @@ object LogConstants {
     const val EXCEPTION_FINDER_NOT_HAVE_EMPTY_CONSTRUCTOR =
             "All RecordFinder class need empty constructor to find AudioRecorder."
 
-    const val PERMISSION_DENIED = "RECORD_AUDIO, READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE will be needed for recording audio."
     const val TIMER_NOT_AVAILABLE = "Timer feature will ignored."
 }

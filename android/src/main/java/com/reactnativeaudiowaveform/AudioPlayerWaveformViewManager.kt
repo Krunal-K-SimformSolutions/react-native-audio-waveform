@@ -1,23 +1,31 @@
 package com.reactnativeaudiowaveform
 
+import android.Manifest
 import androidx.annotation.FloatRange
 import androidx.annotation.NonNull
 import androidx.annotation.Nullable
+import androidx.appcompat.app.AlertDialog
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.common.MapBuilder
+import com.facebook.react.modules.core.PermissionListener
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerModule
 import com.facebook.react.uimanager.annotations.ReactProp
 import com.reactnativeaudiowaveform.audio.player.model.AmpsState
+import com.reactnativeaudiowaveform.audio.recorder.constants.AudioConstants
 import com.reactnativeaudiowaveform.audio.recorder.model.DebugState
 import com.reactnativeaudiowaveform.event.player.*
+import com.reactnativeaudiowaveform.permission.RuntimePermission
+import com.reactnativeaudiowaveform.permission.callback.PermissionCallback
 import com.reactnativeaudiowaveform.visualizer.SeekBarOnProgressChanged
 import com.reactnativeaudiowaveform.visualizer.WaveType
 import com.reactnativeaudiowaveform.visualizer.WaveformSeekBar
 
-class AudioPlayerWaveformViewManager(reactApplicationContext: ReactApplicationContext) : WaveformViewManager(reactApplicationContext) {
+class AudioPlayerWaveformViewManager(reactApplicationContext: ReactApplicationContext) : WaveformViewManager(reactApplicationContext),
+  PermissionListener {
   private lateinit var player: Player
+  private lateinit var runtimePermission: RuntimePermission
 
   companion object {
     const val COMMAND_PLAYER_CREATE = 1
@@ -54,7 +62,9 @@ class AudioPlayerWaveformViewManager(reactApplicationContext: ReactApplicationCo
     when (commandId) {
       COMMAND_PLAYER_CREATE -> {
         val isDebug = Utils.getArgsValue(args, 1, true, Boolean::class) ?: true
-        setUpPlayer(isDebug, root)
+        val subscriptionDurationInMilliseconds = Utils.getArgsValue(args, 2, null, Int::class)?.toLong() ?: AudioConstants.SUBSCRIPTION_DURATION_IN_MILLISECONDS
+
+        setUpPlayer(isDebug, subscriptionDurationInMilliseconds, root)
       }
       COMMAND_PLAYER_SOURCE -> {
         val filepath = Utils.getArgsValue(args, 1, null, String::class)
@@ -82,8 +92,19 @@ class AudioPlayerWaveformViewManager(reactApplicationContext: ReactApplicationCo
       .build()
   }
 
+  override fun onRequestPermissionsResult(
+    requestCode: Int,
+    permissions: Array<String>,
+    grantResults: IntArray
+  ): Boolean {
+    DebugState.debug("onRequestPermissionsResult -> $requestCode,${permissions},${grantResults}")
+    runtimePermission.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    return false
+  }
+
   @ReactProp(name = "playbackSpeed", defaultFloat = 1f)
   fun setPlaybackSpeed(view: WaveformSeekBar, @FloatRange(from = 0.0, fromInclusive = false) speed: Float) {
+    DebugState.debug("setPlaybackSpeed -> playbackSpeed: $speed")
     try {
       if(checkPlayerInit(view)) {
         player.playbackSpeed(speed)
@@ -92,7 +113,6 @@ class AudioPlayerWaveformViewManager(reactApplicationContext: ReactApplicationCo
       DebugState.error("setPlaybackSpeed", e)
       dispatchJSEvent(OnErrorEvent(view.id, e))
     }
-    DebugState.debug("setPlaybackSpeed -> playbackSpeed: $speed")
   }
 
   override fun initView(@NonNull reactContext: ThemedReactContext, @NonNull waveformSeekBar: WaveformSeekBar) {
@@ -109,14 +129,57 @@ class AudioPlayerWaveformViewManager(reactApplicationContext: ReactApplicationCo
     }
   }
 
+  private fun setPermissionResult(it: PermissionCallback, @NonNull root: WaveformSeekBar) {
+    DebugState.debug("setPermissionResult ->")
+    with(it) {
+      if (hasAccepted()) {
+        try {
+          if(checkPlayerInit(root)) {
+            player.startPlaying()
+          }
+        } catch (e: Exception) {
+          DebugState.error("setPermissionResult", e)
+          dispatchJSEvent(OnErrorEvent(root.id, e))
+        }
+      }
+
+      if (hasDenied()) {
+        AlertDialog.Builder(root.context)
+          .setTitle(Constant.REQUIRED_PERMISSION)
+          .setMessage(Constant.REQUIRED_PERMISSION_DENIED)
+          .setPositiveButton(android.R.string.ok) { _, _ ->
+            askAgain()
+          }
+          .setNegativeButton(android.R.string.cancel) { dialog, _ ->
+            dialog.dismiss()
+          }
+          .show()
+      }
+
+      if (hasForeverDenied()) {
+        AlertDialog.Builder(root.context)
+          .setTitle(Constant.REQUIRED_PERMISSION)
+          .setMessage(Constant.REQUIRED_PERMISSION_FOREVERDENIED)
+          .setPositiveButton(android.R.string.ok) { _, _ ->
+            goToSettings()
+          }
+          .setNegativeButton(android.R.string.cancel) { dialog, _ ->
+            dialog.dismiss()
+          }
+          .show()
+      }
+    }
+  }
+
   private fun setUpPlayer(
     @NonNull isDebug: Boolean,
+    @NonNull subscriptionDurationInMilliseconds: Long,
     @NonNull root: WaveformSeekBar
   ) {
     DebugState.state = isDebug
-    DebugState.debug("setUpPlayer -> $isDebug")
+    DebugState.debug("setUpPlayer -> $isDebug $subscriptionDurationInMilliseconds")
     try {
-      player = Player.getInstance(reactApplicationContext.applicationContext).init(isDebug).apply {
+      player = Player.getInstance(reactApplicationContext.applicationContext).init(isDebug, subscriptionDurationInMilliseconds).apply {
         onProgress = { time, _ ->
           DebugState.debug("onProgress -> time: $time")
           dispatchJSEvent(OnProgressEvent(root.id, time))
@@ -168,14 +231,10 @@ class AudioPlayerWaveformViewManager(reactApplicationContext: ReactApplicationCo
 
   private fun startPlaying(@NonNull root: WaveformSeekBar) {
     DebugState.debug("startPlaying")
-    try {
-      if(checkPlayerInit(root)) {
-        player.startPlaying()
-      }
-    } catch (e: Exception) {
-      DebugState.error("startPlaying", e)
-      dispatchJSEvent(OnErrorEvent(root.id, e))
-    }
+    runtimePermission = RuntimePermission(reactApplicationContext.currentActivity, this)
+      .request(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE)
+      .onResponse { setPermissionResult(it, root) }
+    runtimePermission.ask()
   }
 
   private fun pausePlaying(@NonNull root: WaveformSeekBar) {
