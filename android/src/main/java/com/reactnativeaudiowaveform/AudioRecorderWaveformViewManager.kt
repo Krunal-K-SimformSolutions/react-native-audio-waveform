@@ -112,9 +112,20 @@ class AudioRecorderWaveformViewManager(reactApplicationContext: ReactApplication
     return false
   }
 
+  override fun onDropViewInstance(view: WaveformSeekBar) {
+    super.onDropViewInstance(view)
+    DebugState.debug("onDropViewInstance")
+    try {
+      if(this::recorder.isInitialized) {
+        recorder.stopRecording()
+      }
+    }  catch (e: Exception) {
+      DebugState.error("onDropViewInstance", e)
+    }
+  }
+
   override fun initView(@NonNull reactContext: ThemedReactContext, @NonNull waveformSeekBar: WaveformSeekBar) {
     localEventDispatcher = reactContext.getNativeModule(UIManagerModule::class.java).eventDispatcher
-
     waveformSeekBar.waveType = WaveType.RECORDER
     waveformSeekBar.onProgressChanged = object : SeekBarOnProgressChanged {
       override fun onProgressChanged(waveformSeekBar: WaveformSeekBar, progress: Float, fromUser: Boolean) {

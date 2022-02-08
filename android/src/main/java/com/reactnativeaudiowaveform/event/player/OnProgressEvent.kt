@@ -6,10 +6,11 @@ import com.facebook.react.uimanager.events.Event
 
 import com.facebook.react.uimanager.events.RCTEventEmitter
 
-class OnProgressEvent(viewTag: Int, private val currentTime: Long) : Event<OnProgressEvent>(viewTag) {
+class OnProgressEvent(viewTag: Int, private val currentTime: Long, private val maxTime: Long) : Event<OnProgressEvent>(viewTag) {
   override fun dispatch(rctEventEmitter: RCTEventEmitter) {
     val data: WritableMap = Arguments.createMap()
     data.putDouble("currentTime", currentTime.toDouble())
+    data.putDouble("maxTime", maxTime.toDouble())
     rctEventEmitter.receiveEvent(viewTag, eventName, data)
   }
 

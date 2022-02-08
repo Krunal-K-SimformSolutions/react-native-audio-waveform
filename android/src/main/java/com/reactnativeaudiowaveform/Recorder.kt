@@ -101,6 +101,7 @@ class Recorder private constructor(context: Context) {
         if(!this::recorder.isInitialized)
             throw Exception(Constant.NOT_INIT_RECORDER)
 
+      if(!recorder.isRecording())
         recorder.startRecording()
     }
 
@@ -108,16 +109,19 @@ class Recorder private constructor(context: Context) {
         if(!this::recorder.isInitialized)
             throw Exception(Constant.NOT_INIT_RECORDER)
 
+      if(recorder.isRecording()) {
         recorder.stopRecording()
         if (!withFFmpegMode) {
-            finishRecording()
+          finishRecording()
         }
+      }
     }
 
     fun resumeRecording() {
         if(!this::recorder.isInitialized)
             throw Exception(Constant.NOT_INIT_RECORDER)
 
+      if(!recorder.isRecording())
         recorder.resumeRecording()
     }
 
@@ -125,6 +129,7 @@ class Recorder private constructor(context: Context) {
         if(!this::recorder.isInitialized)
             throw Exception(Constant.NOT_INIT_RECORDER)
 
+      if(recorder.isRecording())
         recorder.pauseRecording()
     }
 
