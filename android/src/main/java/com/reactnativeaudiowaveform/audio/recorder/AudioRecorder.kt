@@ -67,6 +67,8 @@ class AudioRecorder {
      */
     fun getAudioRecorder() = audioRecorder
 
+    fun isRecording() = recordWriter.getAudioSource().isRecordAvailable()
+
     /**
      * Start Recording
      */

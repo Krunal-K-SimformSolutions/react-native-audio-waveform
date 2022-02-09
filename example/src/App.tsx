@@ -6,9 +6,7 @@ import {
   View,
 } from 'react-native';
 import { Buffer } from 'buffer';
-import {
-  AudioRecorderWaveformView,
-  AudioPlayerWaveformView,
+import AudioWaveformView, {
   AudioSourceAndroidType,
   AudioEncoderAndroidType,
   FFmpegBitRate,
@@ -21,6 +19,7 @@ import type {
 import styles from './AppStyles';
 
 export default function App() {
+  const [isHide, setHide] = React.useState(false)
   const [playbackSpeed, setPlaybackSpeed] = React.useState(1)
   const refRecorder = React.useRef<AudioRecorderWaveformHandleType>();
   const refPlayer = React.useRef<AudioPlayerWaveformHandleType>();
@@ -38,7 +37,7 @@ export default function App() {
         samplingRate: FFmpegSamplingRate.ORIGINAL,
         mono: true
       },
-      subsDurationMillis: 500
+      subscriptionDurationInMilliseconds: 500
     });
   }, [refRecorder]);
 
@@ -49,9 +48,9 @@ export default function App() {
   return (
     <View style={styles.container}>
     <View style={styles.waveContainer}>
-      <AudioRecorderWaveformView
+      {!isHide && <AudioWaveformView.Recorder
         ref={refRecorder}
-        style={{ width: 350, height: 100 }}
+        style={{ width: 400, height: 200 }}
         gap={3}
         waveWidth={3}
         radius={3}
@@ -71,7 +70,7 @@ export default function App() {
           }}
         onFinished={({ nativeEvent: { file, duration } }) => {
             console.log({ file, duration })
-            // refPlayer?.current?.setSource(file, false);
+            refPlayer?.current?.setSource(file, false);
           }}
         onProgress={({ nativeEvent: { currentTime, maxTime, timeString } }) => {
             console.log({ currentTime, maxTime, timeString })
@@ -83,9 +82,10 @@ export default function App() {
             console.log({ time })
           }}
       />
+        }
     </View>
     <View style={styles.waveContainer}>
-      <AudioPlayerWaveformView 
+      {!isHide && <AudioWaveformView.Player 
         ref={refPlayer} 
         style={{ width: 400, height: 200 }}
         gap={3}
@@ -114,6 +114,7 @@ export default function App() {
         onAmpsState={({ nativeEvent: { ampsState } }) => {
             console.log({ ampsState })
           }} />
+        }
       </View>
       <Text style={styles.optionText}>Recorder</Text>
       <View style={styles.boxContainer}>
@@ -152,6 +153,15 @@ export default function App() {
           style={styles.box}
         >
           <Text style={styles.boxText}>Stop</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => {
+              setHide((prev) => !prev)
+            }}
+            style={styles.box}
+          >
+            <Text style={styles.boxText}>{isHide ? 'Visible' : 'InVisible'}</Text>
         </TouchableOpacity>
       </View>
       <Text style={styles.optionText}>Player</Text>

@@ -1,5 +1,5 @@
-export { AudioRecorderWaveformView } from './recorder/AudioRecorderWaveformView';
-export { AudioPlayerWaveformView } from './player/AudioPlayerWaveformView';
+import { AudioRecorderWaveformView } from './recorder/AudioRecorderWaveformView';
+import { AudioPlayerWaveformView } from './player/AudioPlayerWaveformView';
 export type {
   FFmpegConvert,
   AudioRecordConfig,
@@ -31,3 +31,10 @@ export type {
   OnLoadAmpsEvent,
   OnAmpsStateEvent,
 } from './player/AudioPlayerWaveformViewTypes';
+
+const AudioWaveformView = Object.assign(AudioRecorderWaveformView, {
+  Recorder: AudioRecorderWaveformView,
+  Player: AudioPlayerWaveformView,
+});
+
+export default AudioWaveformView;

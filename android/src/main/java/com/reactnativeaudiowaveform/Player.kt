@@ -50,13 +50,15 @@ class Player private constructor(context: Context) {
         if(!this::player.isInitialized)
             throw Exception("Player not initialized")
 
-        player.startPlaying()
+        if(!player.isPlaying())
+          player.startPlaying()
     }
 
     fun stopPlaying() {
         if(!this::player.isInitialized)
             throw Exception("Player not initialized")
 
+      if(player.isPlaying())
         player.stopPlaying()
     }
 
@@ -64,6 +66,7 @@ class Player private constructor(context: Context) {
         if(!this::player.isInitialized)
             throw Exception("Player not initialized")
 
+      if(!player.isPlaying())
         player.resumePlaying()
     }
 
@@ -71,6 +74,7 @@ class Player private constructor(context: Context) {
         if(!this::player.isInitialized)
             throw Exception("Player not initialized")
 
+      if(player.isPlaying())
         player.pausePlaying()
     }
 

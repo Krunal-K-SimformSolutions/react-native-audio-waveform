@@ -102,6 +102,18 @@ class AudioPlayerWaveformViewManager(reactApplicationContext: ReactApplicationCo
     return false
   }
 
+  override fun onDropViewInstance(view: WaveformSeekBar) {
+    super.onDropViewInstance(view)
+    DebugState.debug("onDropViewInstance")
+    try {
+      if(this::player.isInitialized) {
+        player.stopPlaying()
+      }
+    } catch (e: Exception) {
+      DebugState.error("onHostDestroy", e)
+    }
+  }
+
   @ReactProp(name = "playbackSpeed", defaultFloat = 1f)
   fun setPlaybackSpeed(view: WaveformSeekBar, @FloatRange(from = 0.0, fromInclusive = false) speed: Float) {
     DebugState.debug("setPlaybackSpeed -> playbackSpeed: $speed")
@@ -117,7 +129,6 @@ class AudioPlayerWaveformViewManager(reactApplicationContext: ReactApplicationCo
 
   override fun initView(@NonNull reactContext: ThemedReactContext, @NonNull waveformSeekBar: WaveformSeekBar) {
     localEventDispatcher = reactContext.getNativeModule(UIManagerModule::class.java).eventDispatcher
-
     waveformSeekBar.waveType = WaveType.PLAYER
     waveformSeekBar.onProgressChanged = object : SeekBarOnProgressChanged {
       override fun onProgressChanged(waveformSeekBar: WaveformSeekBar, progress: Float, fromUser: Boolean) {
@@ -182,7 +193,7 @@ class AudioPlayerWaveformViewManager(reactApplicationContext: ReactApplicationCo
       player = Player.getInstance(reactApplicationContext.applicationContext).init(isDebug, subscriptionDurationInMilliseconds).apply {
         onProgress = { time, _ ->
           DebugState.debug("onProgress -> time: $time")
-          dispatchJSEvent(OnProgressEvent(root.id, time))
+          dispatchJSEvent(OnProgressEvent(root.id, time, player.getTotalDuration()))
           root.progress = (time.toFloat() / player.getTotalDuration()) * 100
         }
         onPlayState = {
