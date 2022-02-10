@@ -42,7 +42,7 @@ export default function App() {
   }, [refRecorder]);
 
   React.useEffect(() => {
-    refPlayer?.current?.createPlayer(true, 500);
+    refPlayer?.current?.createPlayer(true, 50);
   }, [refPlayer]);
 
   return (
@@ -51,10 +51,10 @@ export default function App() {
       {!isHide && <AudioWaveformView.Recorder
         ref={refRecorder}
         style={{ width: 400, height: 200 }}
-        gap={3}
-        waveWidth={3}
-        radius={3}
-        minHeight={1}
+        gap={5}
+        waveWidth={10}
+        radius={5}
+        minHeight={60}
         gravity={'center'}
         barPgColor={'#FF0000'}
         barBgColor={'#0000FF'}
@@ -88,10 +88,10 @@ export default function App() {
       {!isHide && <AudioWaveformView.Player 
         ref={refPlayer} 
         style={{ width: 400, height: 200 }}
-        gap={3}
-        waveWidth={6}
-        radius={3}
-        minHeight={1}
+        gap={5}
+        waveWidth={10}
+        radius={5}
+        minHeight={60}
         gravity={'center'}
         playbackSpeed={playbackSpeed}
         barPgColor={'#FF0000'}

@@ -126,7 +126,7 @@ class AudioRecorderWaveformViewManager(reactApplicationContext: ReactApplication
 
   override fun initView(@NonNull reactContext: ThemedReactContext, @NonNull waveformSeekBar: WaveformSeekBar) {
     localEventDispatcher = reactContext.getNativeModule(UIManagerModule::class.java).eventDispatcher
-    waveformSeekBar.waveType = WaveType.RECORDER
+    waveformSeekBar.setWaveType(WaveType.RECORDER)
     waveformSeekBar.onProgressChanged = object : SeekBarOnProgressChanged {
       override fun onProgressChanged(waveformSeekBar: WaveformSeekBar, progress: Float, fromUser: Boolean) {
         DebugState.debug("onProgressChanged -> progress: $progress, fromUser: $fromUser")

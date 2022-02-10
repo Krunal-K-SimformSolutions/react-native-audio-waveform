@@ -129,11 +129,12 @@ class AudioPlayerWaveformViewManager(reactApplicationContext: ReactApplicationCo
 
   override fun initView(@NonNull reactContext: ThemedReactContext, @NonNull waveformSeekBar: WaveformSeekBar) {
     localEventDispatcher = reactContext.getNativeModule(UIManagerModule::class.java).eventDispatcher
-    waveformSeekBar.waveType = WaveType.PLAYER
+    waveformSeekBar.setWaveType(WaveType.PLAYER)
     waveformSeekBar.onProgressChanged = object : SeekBarOnProgressChanged {
       override fun onProgressChanged(waveformSeekBar: WaveformSeekBar, progress: Float, fromUser: Boolean) {
         DebugState.debug("onProgressChanged -> progress: $progress, fromUser: $fromUser")
         if (progress in 0f..100f) {
+          player.seekTo(((progress * player.getTotalDuration()) / 100).toLong())
           dispatchJSEvent(OnSeekChangeEvent(waveformSeekBar.id, progress, fromUser))
         }
       }
@@ -194,7 +195,7 @@ class AudioPlayerWaveformViewManager(reactApplicationContext: ReactApplicationCo
         onProgress = { time, _ ->
           DebugState.debug("onProgress -> time: $time")
           dispatchJSEvent(OnProgressEvent(root.id, time, player.getTotalDuration()))
-          root.progress = (time.toFloat() / player.getTotalDuration()) * 100
+          root.setProgress((time.toFloat() / player.getTotalDuration()) * 100)
         }
         onPlayState = {
           DebugState.debug("onPlayState -> playState: $it")

@@ -44,55 +44,55 @@ abstract class WaveformViewManager (val reactApplicationContext: ReactApplicatio
     localEventDispatcher.dispatchEvent(event)
   }
 
-  @ReactProp(name = "visibleProgress", defaultFloat = 50f)
+  @ReactProp(name = "visibleProgress", defaultFloat = 0f)
   fun setVisibleProgress(view: WaveformSeekBar, @NonNull visibleProgress: Float) {
-    view.visibleProgress = visibleProgress
+    view.setVisibleProgress(visibleProgress)
     DebugState.debug("setVisibleProgress -> visibleProgress: $visibleProgress")
   }
 
   @ReactProp(name = "progress", defaultFloat = 0f)
   fun setProgress(view: WaveformSeekBar, @NonNull progress: Float) {
-    view.progress = progress
+    view.setProgress(progress)
     DebugState.debug("setProgress -> progress: $progress")
   }
 
   @ReactProp(name = "maxProgress", defaultFloat = 100f)
   fun setMaxProgress(view: WaveformSeekBar, @NonNull maxProgress: Float) {
-    view.maxProgress = maxProgress
+    view.setMaxProgress(maxProgress)
     DebugState.debug("setMaxProgress -> maxProgress: $maxProgress")
   }
 
   @ReactProp(name = "waveWidth", defaultFloat = 10f)
   fun setWaveWidth(view: WaveformSeekBar, @NonNull waveWidth: Float) {
-    view.waveWidth = Utils.dp(view.context, waveWidth)
+    view.setWaveWidth(Utils.dp(view.context, waveWidth))
     DebugState.debug("setWaveWidth -> waveWidth: $waveWidth")
   }
 
   @ReactProp(name = "gap", defaultFloat = 5f)
   fun setWaveGap(view: WaveformSeekBar, @NonNull gap: Float) {
-    view.waveGap = Utils.dp(view.context, gap)
+    view.setWaveGap(Utils.dp(view.context, gap))
     DebugState.debug("setWaveGap -> gap: $gap")
   }
 
   @ReactProp(name = "minHeight", defaultFloat = 20f)
   fun setWaveMinHeight(view: WaveformSeekBar, @NonNull minHeight: Float) {
-    view.waveMinHeight = Utils.dp(view.context, minHeight)
+    view.setWaveMinHeight(Utils.dp(view.context, minHeight))
     DebugState.debug("setWaveMinHeight -> minHeight: $minHeight")
   }
 
   @ReactProp(name = "radius", defaultFloat = 5f)
   fun setWaveCornerRadius(view: WaveformSeekBar, @NonNull radius: Float) {
-    view.waveCornerRadius = Utils.dp(view.context, radius)
+    view.setWaveCornerRadius(Utils.dp(view.context, radius))
     DebugState.debug("setWaveCornerRadius -> radius: $radius")
   }
 
   @ReactProp(name = "gravity")
   fun setWaveGravity(view: WaveformSeekBar, @Nullable gravity: String) {
     when(gravity) {
-      "top" -> view.waveGravity = WaveGravity.TOP
-      "center" -> view.waveGravity = WaveGravity.CENTER
-      "bottom" -> view.waveGravity = WaveGravity.BOTTOM
-      else -> view.waveGravity = WaveGravity.CENTER
+      "top" -> view.setWaveGravity(WaveGravity.TOP)
+      "center" -> view.setWaveGravity(WaveGravity.CENTER)
+      "bottom" -> view.setWaveGravity(WaveGravity.BOTTOM)
+      else -> view.setWaveGravity(WaveGravity.CENTER)
     }
     DebugState.debug("setWaveGravity -> gravity: $gravity")
   }
@@ -100,32 +100,32 @@ abstract class WaveformViewManager (val reactApplicationContext: ReactApplicatio
   @ReactProp(name = "barBgColor")
   fun setWaveBackgroundColor(view: WaveformSeekBar, @Nullable backgroundColor: String?) {
     if(backgroundColor != null) {
-      view.waveBackgroundColor = Color.parseColor(backgroundColor)
+      view.setWaveBackgroundColor(Color.parseColor(backgroundColor))
     } else {
-      view.waveBackgroundColor = Color.BLACK
+      view.setWaveBackgroundColor(Color.BLACK)
     }
     DebugState.debug("setWaveBackgroundColor -> barBgColor: $backgroundColor")
   }
 
   @ReactProp(name = "barBgColor", defaultInt = Color.BLACK)
   fun setWaveBackgroundColor(view: WaveformSeekBar, @NonNull backgroundColor: Int) {
-    view.waveBackgroundColor = backgroundColor
+    view.setWaveBackgroundColor(backgroundColor)
     DebugState.debug("setWaveBackgroundColor -> barBgColor: $backgroundColor")
   }
 
   @ReactProp(name = "barPgColor")
   fun setWaveProgressColor(view: WaveformSeekBar, @Nullable progressColor: String?) {
     if(progressColor != null) {
-      view.waveProgressColor = Color.parseColor(progressColor)
+      view.setWaveProgressColor(Color.parseColor(progressColor))
     } else {
-      view.waveProgressColor = Color.RED
+      view.setWaveProgressColor(Color.RED)
     }
     DebugState.debug("setWaveProgressColor -> barPgColor: $progressColor")
   }
 
   @ReactProp(name = "barPgColor", defaultInt = Color.RED)
   fun setWaveProgressColor(view: WaveformSeekBar, @NonNull progressColor: Int) {
-    view.waveProgressColor = progressColor
+    view.setWaveProgressColor(progressColor)
     DebugState.debug("setWaveProgressColor -> barPgColor: $progressColor")
   }
 }
