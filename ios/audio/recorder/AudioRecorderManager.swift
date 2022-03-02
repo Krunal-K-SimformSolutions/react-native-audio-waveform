@@ -67,6 +67,29 @@ class AudioRecorderManager: RCTEventEmitter {
         }
     }
     
+    func isHeadsetPluggedIn() -> Bool {
+        let route = AVAudioSession.sharedInstance().currentRoute
+        for desc in route.outputs {
+            print(desc.portType)
+            if desc.portType == AVAudioSession.Port.headphones || desc.portType == AVAudioSession.Port.bluetoothA2DP {
+                return true
+            }
+        }
+        return false
+    }
+    
+    func isHeadSetBluetooth() -> Bool {
+        let arrayInputs = AVAudioSession.sharedInstance().availableInputs
+        for port in arrayInputs ?? [] {
+            print(port.portType)
+
+            if port.portType == AVAudioSession.Port.bluetoothHFP {
+                return true
+            }
+        }
+        return false
+    }
+    
     // MARK:- Recording
     func startRecording(isResume: Bool = false, with completion: @escaping (URL?, Error?) -> Void) {
         askPermission { isGranted, Error in
@@ -78,9 +101,16 @@ class AudioRecorderManager: RCTEventEmitter {
                 self.audioEngine = AVAudioEngine()
                 do {
                     let session = AVAudioSession.sharedInstance()
-                    try session.setCategory(.playAndRecord,
-                                            mode: AVAudioSession.Mode.default,
-                                            options: [.mixWithOthers, .allowBluetooth, .allowBluetoothA2DP, .defaultToSpeaker])
+                    if self.isHeadsetPluggedIn() || self.isHeadSetBluetooth() {
+                        try session.setCategory(.playAndRecord,
+                                                mode: AVAudioSession.Mode.default,
+                                                options: [.mixWithOthers, .allowBluetooth, .allowBluetoothA2DP])
+                    } else {
+                        try session.setCategory(.playAndRecord,
+                                                mode: AVAudioSession.Mode.default,
+                                                options: [.mixWithOthers, .allowBluetooth, .allowBluetoothA2DP, .defaultToSpeaker])
+                    }
+                    
                     try session.setActive(true, options: .notifyOthersOnDeactivation)
                 } catch let error as NSError {
                     NotificationCenter.default.post(name: .errorNotification, object: self, userInfo: [errorKey: error.localizedDescription])
@@ -94,22 +124,22 @@ class AudioRecorderManager: RCTEventEmitter {
                     guard let strongSelf = self else {
                         return
                     }
-                    buffer.frameLength = 2048
+                    buffer.frameLength = buffer.frameCapacity
                     guard let channelData = buffer.floatChannelData else {
-                      return
+                        return
                     }
                     
                     let channelDataValue = channelData.pointee
                     // 4
                     let channelDataValueArray = stride(
-                      from: 0,
-                      to: Int(buffer.frameLength),
-                      by: buffer.stride)
-                      .map { channelDataValue[$0] }
+                        from: 0,
+                        to: Int(buffer.frameLength),
+                        by: buffer.stride)
+                        .map { channelDataValue[$0] }
                     
                     // 5
                     let rms = sqrt(channelDataValueArray.map {
-                      return $0 * $0
+                        return $0 * $0
                     }
                                     .reduce(0, +) / Float(buffer.frameLength))
                     
