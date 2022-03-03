@@ -82,7 +82,7 @@ class AudioRecorderManager: RCTEventEmitter {
         let arrayInputs = AVAudioSession.sharedInstance().availableInputs
         for port in arrayInputs ?? [] {
             print(port.portType)
-
+            
             if port.portType == AVAudioSession.Port.bluetoothHFP {
                 return true
             }
@@ -272,9 +272,9 @@ class AudioRecorderManager: RCTEventEmitter {
             return
         }
         if isCancel {
-            NotificationCenter.default.post(name: .recorderStateNotification, object: self, userInfo: [recordStateKey: RecordState.stop])
-        } else {
             NotificationCenter.default.post(name: .recorderStateNotification, object: self, userInfo: [recordStateKey: RecordState.canceled])
+        } else {
+            NotificationCenter.default.post(name: .recorderStateNotification, object: self, userInfo: [recordStateKey: RecordState.stop])
         }
         
     }

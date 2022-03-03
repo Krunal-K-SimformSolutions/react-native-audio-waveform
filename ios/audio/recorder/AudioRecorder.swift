@@ -47,6 +47,12 @@ class AudioRecorder {
         }
     }
     
+    func cancelRecording() {
+        DispatchQueue.main.async {
+            self.audioRecorderManager.stopRecording(isCancel: true)
+        }
+    }
+    
     func resumeRecording() {
         if !self.audioRecorderManager.isRecording() {
             audioRecorderManager.startRecording(isResume: true) { (url, error) in
