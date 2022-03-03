@@ -6,10 +6,13 @@ import {
   findNodeHandle,
 } from 'react-native';
 import { LINKING_ERROR } from '../Constants';
+import type { AudioRecorderWaveformViewProps } from './AudioRecorderWaveformViewTypes';
 
 export const NativeAudioRecorderWaveformView =
   UIManager.getViewManagerConfig('AudioRecorderWaveformView') != null
-    ? requireNativeComponent('AudioRecorderWaveformView')
+    ? requireNativeComponent<AudioRecorderWaveformViewProps>(
+        'AudioRecorderWaveformView'
+      )
     : () => {
         throw new Error(LINKING_ERROR);
       };

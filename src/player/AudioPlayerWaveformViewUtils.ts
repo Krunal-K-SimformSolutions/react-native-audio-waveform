@@ -5,15 +5,22 @@ import {
   findNodeHandle,
 } from 'react-native';
 import { LINKING_ERROR } from '../Constants';
+import type { AudioPlayerWaveformViewProps } from './AudioPlayerWaveformViewTypes';
 
 export const NativeAudioPlayerWaveformView =
   UIManager.getViewManagerConfig('AudioPlayerWaveformView') != null
-    ? requireNativeComponent('AudioPlayerWaveformView')
+    ? requireNativeComponent<AudioPlayerWaveformViewProps>(
+        'AudioPlayerWaveformView'
+      )
     : () => {
         throw new Error(LINKING_ERROR);
       };
 
-export const setUpPlayer = (viewId: number | null, withDebug: boolean, subscriptionDurationInMilliseconds: number) =>
+export const setUpPlayer = (
+  viewId: number | null,
+  withDebug: boolean,
+  subscriptionDurationInMilliseconds: number
+) =>
   UIManager.dispatchViewManagerCommand(
     viewId,
     // we are calling the 'create' command for init player
@@ -21,7 +28,11 @@ export const setUpPlayer = (viewId: number | null, withDebug: boolean, subscript
     [viewId, withDebug, subscriptionDurationInMilliseconds]
   );
 
-export const setSource = (viewId: number | null, filePath: string, isAmplitudaMode?: boolean) =>
+export const setSource = (
+  viewId: number | null,
+  filePath: string,
+  isAmplitudaMode?: boolean
+) =>
   UIManager.dispatchViewManagerCommand(
     viewId,
     // we are calling the 'source' command for set source

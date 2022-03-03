@@ -77,7 +77,7 @@ export type FFmpegConvert = {
 // '.pcm',  '.wav' -> false isFfmpegMode
 // '.mp3', '.aac', '.m4a',  '.wma', '.flac', '.mp4'
 export type AudioRecordConfig = {
-  sourceMode: 'normal' | 'noise' | 'auto';
+  sourceMode?: 'normal' | 'noise' | 'auto';
   isFFmpegMode?: boolean;
   audioSourceAndroid?: AudioSourceAndroidType;
   audioEncoderAndroid?: AudioEncoderAndroidType;

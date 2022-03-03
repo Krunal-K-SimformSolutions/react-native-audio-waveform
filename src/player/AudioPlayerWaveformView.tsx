@@ -1,4 +1,5 @@
-import React, { forwardRef, useImperativeHandle, useRef } from 'react';
+import React, { forwardRef, useImperativeHandle } from 'react';
+import { StyleSheet, View } from 'react-native';
 import styles from './AudioPlayerWaveformViewStyles';
 import type {
   AudioPlayerWaveformViewProps,
@@ -14,6 +15,8 @@ import {
   stopPlayer,
   NativeAudioPlayerWaveformView,
 } from './AudioPlayerWaveformViewUtils';
+
+const refView = React.createRef<View>();
 
 function CustomAudioPlayerWaveformView(
   {
@@ -38,11 +41,16 @@ function CustomAudioPlayerWaveformView(
   }: AudioPlayerWaveformViewProps,
   ref: React.Ref<AudioPlayerWaveformHandleType>
 ): React.ReactElement {
-  const refView = useRef();
-
   useImperativeHandle(ref, () => ({
-    createPlayer: (withDebug: boolean = false, subscriptionDurationInMilliseconds: number) => {
-      setUpPlayer(getViewId(refView), withDebug, subscriptionDurationInMilliseconds);
+    createPlayer: (
+      withDebug: boolean = false,
+      subscriptionDurationInMilliseconds: number
+    ) => {
+      setUpPlayer(
+        getViewId(refView),
+        withDebug,
+        subscriptionDurationInMilliseconds
+      );
     },
     setSource: (filePath: string, isAmplitudaMode?: boolean) => {
       setSource(getViewId(refView), filePath, isAmplitudaMode);
@@ -64,7 +72,7 @@ function CustomAudioPlayerWaveformView(
   return (
     <NativeAudioPlayerWaveformView
       ref={refView}
-      style={[styles.defaultStyle, style]}
+      style={StyleSheet.flatten([styles.defaultStyle, style])}
       progress={progress}
       maxProgress={maxProgress}
       visibleProgress={visibleProgress}
@@ -86,5 +94,6 @@ function CustomAudioPlayerWaveformView(
   );
 }
 
-export const AudioPlayerWaveformView: React.ForwardRefExoticComponent<AudioPlayerWaveformViewProps> =
-  forwardRef(CustomAudioPlayerWaveformView);
+export const AudioPlayerWaveformView = forwardRef(
+  CustomAudioPlayerWaveformView
+);
