@@ -12,6 +12,7 @@ import {
   setUpRecorder,
   startRecorder,
   stopRecorder,
+  cancelRecorder,
   NativeAudioRecorderWaveformView,
 } from './AudioRecorderWaveformViewUtils';
 import { StyleSheet, View } from 'react-native';
@@ -57,6 +58,9 @@ function CustomAudioRecorderWaveformView(
     },
     stopRecording: () => {
       stopRecorder(getViewId(refView));
+    },
+    cancelRecording: () => {
+      cancelRecorder(getViewId(refView));
     },
   }));
 

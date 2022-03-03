@@ -49,9 +49,9 @@ class AudioRecorderWaveformViewManager: RCTViewManager {
     @objc private func handleRecorderStatusUpdate(_ notification: Notification) {
         let currentStatus = notification.userInfo![recordStateKey] as! RecordState
         DispatchQueue.main.async {
+            self.handleTimerBasedOnRecorderState(state: currentStatus)
             if let onRecorderState = self.component?.onRecorderState {
                 onRecorderState([recordStateKey: currentStatus.rawValue])
-                self.handleTimerBasedOnRecorderState(state: currentStatus)
             }
         }
     }
@@ -81,6 +81,8 @@ class AudioRecorderWaveformViewManager: RCTViewManager {
         case .pause, .resume:
             self.pauseTimer()
             break
+        case .canceled:
+            self.resetTimer()
         }
     }
     
@@ -154,6 +156,14 @@ class AudioRecorderWaveformViewManager: RCTViewManager {
     
     @objc
     func stop(_ reactTag: NSNumber, viewId: NSNumber) {
+        AudioRecorder.sharedInstance.stopRecording()
+        DispatchQueue.main.async {
+            self.component?.reset()
+        }
+    }
+    
+    @objc
+    func cancel(_ reactTag: NSNumber, viewId: NSNumber) {
         AudioRecorder.sharedInstance.stopRecording()
         DispatchQueue.main.async {
             self.component?.reset()

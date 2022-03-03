@@ -29,5 +29,6 @@ RCT_EXTERN_METHOD(start:(nonnull NSNumber *)reactTag viewId:(nonnull NSNumber *)
 RCT_EXTERN_METHOD(pause:(nonnull NSNumber *)reactTag viewId:(nonnull NSNumber *)viewId)
 RCT_EXTERN_METHOD(resume:(nonnull NSNumber *)reactTag viewId:(nonnull NSNumber *)viewId)
 RCT_EXTERN_METHOD(stop:(nonnull NSNumber *)reactTag viewId:(nonnull NSNumber *)viewId)
+RCT_EXTERN_METHOD(cancel:(nonnull NSNumber *)reactTag viewId:(nonnull NSNumber *)viewId)
 
 @end

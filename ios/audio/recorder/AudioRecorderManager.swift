@@ -261,7 +261,7 @@ class AudioRecorderManager: RCTEventEmitter {
         }
     }
     
-    func stopRecording() {
+    func stopRecording(isCancel: Bool = false) {
         self.audioFile = nil
         self.audioEngine.inputNode.removeTap(onBus: 0)
         self.audioEngine.stop()
@@ -271,7 +271,11 @@ class AudioRecorderManager: RCTEventEmitter {
             print(error.localizedDescription)
             return
         }
-        NotificationCenter.default.post(name: .recorderStateNotification, object: self, userInfo: [recordStateKey: RecordState.stop])
+        if isCancel {
+            NotificationCenter.default.post(name: .recorderStateNotification, object: self, userInfo: [recordStateKey: RecordState.stop])
+        } else {
+            NotificationCenter.default.post(name: .recorderStateNotification, object: self, userInfo: [recordStateKey: RecordState.canceled])
+        }
         
     }
     

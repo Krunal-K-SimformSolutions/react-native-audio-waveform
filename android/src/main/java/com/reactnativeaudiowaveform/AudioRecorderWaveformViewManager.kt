@@ -34,6 +34,7 @@ class AudioRecorderWaveformViewManager(reactApplicationContext: ReactApplication
     const val COMMAND_RECORDER_PAUSE = 3
     const val COMMAND_RECORDER_RESUME = 4
     const val COMMAND_RECORDER_STOP = 5
+    const val COMMAND_RECORDER_CANCEL = 6
 
     const val TAG = "AudioRecorderWaveformView"
   }
@@ -51,6 +52,7 @@ class AudioRecorderWaveformViewManager(reactApplicationContext: ReactApplication
       .put("pause", COMMAND_RECORDER_PAUSE)
       .put("resume", COMMAND_RECORDER_RESUME)
       .put("stop", COMMAND_RECORDER_STOP)
+      .put("cancel", COMMAND_RECORDER_CANCEL)
       .build()
   }
 
@@ -85,6 +87,7 @@ class AudioRecorderWaveformViewManager(reactApplicationContext: ReactApplication
       COMMAND_RECORDER_PAUSE -> pauseRecording(root)
       COMMAND_RECORDER_RESUME -> resumeRecording(root)
       COMMAND_RECORDER_STOP -> stopRecording(root)
+      COMMAND_RECORDER_CANCEL -> cancelRecording(root)
       else -> {}
     }
   }
@@ -275,6 +278,18 @@ class AudioRecorderWaveformViewManager(reactApplicationContext: ReactApplication
       }
     }  catch (e: Exception) {
       DebugState.error("stopRecording", e)
+      dispatchJSEvent(OnErrorEvent(root.id, e))
+    }
+  }
+
+  private fun cancelRecording(@NonNull root: WaveformSeekBar) {
+    DebugState.debug("cancelRecording")
+    try {
+      if(checkRecorderInit(root)) {
+        recorder.cancelRecording()
+      }
+    }  catch (e: Exception) {
+      DebugState.error("cancelRecording", e)
       dispatchJSEvent(OnErrorEvent(root.id, e))
     }
   }
