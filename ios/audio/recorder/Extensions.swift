@@ -13,6 +13,7 @@ enum RecordState : String {
     case stop = "STOP"
     case pause = "PAUSE"
     case resume = "RESUME"
+    case canceled = "CANCELED"
 }
 
 //Notification Center

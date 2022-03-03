@@ -66,4 +66,5 @@ export type AudioRecorderWaveformHandleType = Required<{
   pauseRecording: () => void;
   resumeRecording: () => void;
   stopRecording: () => void;
+  cancelRecording: () => void;
 }>;

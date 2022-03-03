@@ -87,6 +87,14 @@ export const stopRecorder = (viewId: number | null) =>
     [viewId]
   );
 
+export const cancelRecorder = (viewId: number | null) =>
+  UIManager.dispatchViewManagerCommand(
+    viewId,
+    // we are calling the 'stop' command for stop recording
+    UIManager.getViewManagerConfig('AudioRecorderWaveformView').Commands.cancel,
+    [viewId]
+  );
+
 export const getViewId = (ref?: MutableRefObject<any>): number | null => {
   const viewId = ref ? findNodeHandle(ref.current) : null;
   return viewId;

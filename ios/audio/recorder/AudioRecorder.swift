@@ -42,7 +42,6 @@ class AudioRecorder {
     
     func stopRecording() {
         DispatchQueue.main.async {
-            print(self.audioRecorderManager.currentRecordPath!)
             self.audioRecorderManager.stopRecording()
             
         }
