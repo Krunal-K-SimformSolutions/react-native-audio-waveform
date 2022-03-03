@@ -24,6 +24,7 @@ class Recorder private constructor(context: Context) {
     private val appContext = context
     private var withFFmpegMode = false
     private var withDebug = false
+    private var withCancel = false
     private var withRefreshTimerMillis: Long = AudioConstants.SUBSCRIPTION_DURATION_IN_MILLISECONDS
 
     private lateinit var recorder: AudioRecorder
@@ -56,59 +57,61 @@ class Recorder private constructor(context: Context) {
       this.convertConfig = convertConfig
 
       this.source = when (sourceMode) {
-            "noise" -> NoiseAudioSource(this.config)
-            "auto" -> AutomaticGainAudioSource(this.config)
-            else -> DefaultAudioSource(this.config)
-        }
-        return this
+        "noise" -> NoiseAudioSource(this.config)
+        "auto" -> AutomaticGainAudioSource(this.config)
+        else -> DefaultAudioSource(this.config)
+      }
+      return this
     }
 
     fun setSource(@NonNull filePath: String) {
-        if(!this::recorder.isInitialized)
-            throw Exception(Constant.NOT_INIT_RECORDER)
+      if(!this::recorder.isInitialized)
+        throw Exception(Constant.NOT_INIT_RECORDER)
 
-        sourceFilePath = appContext.recordFile(filePath)
+      withCancel = false
+      sourceFilePath = appContext.recordFile(filePath)
+      recorder.create(FFmpegRecordFinder::class.java) {
+        this.ffmpegMode = withFFmpegMode
+        this.destFile = sourceFilePath
+        this.recordConfig = config
+        this.audioSource = source
+        this.refreshTimerMillis = withRefreshTimerMillis
+        this.chunkAvailableCallback = onRawBuffer
+        this.silentDetectedCallback = onSilentDetected
+        this.timerCountCallback = onProgress
+        this.debugMode = withDebug
+      }
 
-        recorder.create(FFmpegRecordFinder::class.java) {
-            this.ffmpegMode = withFFmpegMode
-            this.destFile = sourceFilePath
-            this.recordConfig = config
-            this.audioSource = source
-            this.refreshTimerMillis = withRefreshTimerMillis
-            this.chunkAvailableCallback = onRawBuffer
-            this.silentDetectedCallback = onSilentDetected
-            this.timerCountCallback = onProgress
-            this.debugMode = withDebug
+      if (withFFmpegMode) {
+        val ffmpegRecorder: FFmpegAudioRecorder =
+          recorder.getAudioRecorder() as? FFmpegAudioRecorder ?: return
+        ffmpegRecorder.setContext(appContext)
+        ffmpegRecorder.setConvertConfig(convertConfig)
+        ffmpegRecorder.setOnConvertStateChangeListener {
+          onFFmpegState?.invoke(it)
+          if (it == FFmpegConvertState.SUCCESS && !withCancel) {
+              finishRecording()
+          }
         }
+      }
 
-        if (withFFmpegMode) {
-            val ffmpegRecorder: FFmpegAudioRecorder =
-                recorder.getAudioRecorder() as? FFmpegAudioRecorder ?: return
-            ffmpegRecorder.setContext(appContext)
-            ffmpegRecorder.setConvertConfig(convertConfig)
-            ffmpegRecorder.setOnConvertStateChangeListener {
-                onFFmpegState?.invoke(it)
-                if (it == FFmpegConvertState.SUCCESS) {
-                    finishRecording()
-                }
-            }
-        }
-
-        recorder.setOnRecordStateChangeListener { onRecordState?.invoke(it) }
+      recorder.setOnRecordStateChangeListener { onRecordState?.invoke(it) }
     }
 
     fun startRecording() {
-        if(!this::recorder.isInitialized)
-            throw Exception(Constant.NOT_INIT_RECORDER)
+      if(!this::recorder.isInitialized)
+        throw Exception(Constant.NOT_INIT_RECORDER)
 
+      withCancel = false
       if(!recorder.isRecording())
         recorder.startRecording()
     }
 
     fun stopRecording() {
-        if(!this::recorder.isInitialized)
-            throw Exception(Constant.NOT_INIT_RECORDER)
+      if(!this::recorder.isInitialized)
+        throw Exception(Constant.NOT_INIT_RECORDER)
 
+      withCancel = false
       if(recorder.isRecording()) {
         recorder.stopRecording()
         if (!withFFmpegMode) {
@@ -118,19 +121,31 @@ class Recorder private constructor(context: Context) {
     }
 
     fun resumeRecording() {
-        if(!this::recorder.isInitialized)
-            throw Exception(Constant.NOT_INIT_RECORDER)
+      if(!this::recorder.isInitialized)
+        throw Exception(Constant.NOT_INIT_RECORDER)
 
+      withCancel = false
       if(!recorder.isRecording())
         recorder.resumeRecording()
     }
 
     fun pauseRecording() {
-        if(!this::recorder.isInitialized)
-            throw Exception(Constant.NOT_INIT_RECORDER)
+      if(!this::recorder.isInitialized)
+        throw Exception(Constant.NOT_INIT_RECORDER)
 
+      withCancel = false
       if(recorder.isRecording())
         recorder.pauseRecording()
+    }
+
+    fun cancelRecording() {
+      if(!this::recorder.isInitialized)
+        throw Exception(Constant.NOT_INIT_RECORDER)
+
+      withCancel = true
+      if(recorder.isRecording()) {
+        recorder.stopRecording()
+      }
     }
 
     private fun finishRecording() {

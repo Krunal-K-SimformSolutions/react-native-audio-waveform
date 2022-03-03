@@ -1,6 +1,6 @@
 {
-  "name": "react-native-audio-waveform",
-  "version": "0.1.0",
+  "name": "rn-audio-waveform",
+  "version": "1.0.1",
   "description": "user waveform",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",

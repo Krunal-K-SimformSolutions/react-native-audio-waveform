@@ -6,10 +6,13 @@ import {
   findNodeHandle,
 } from 'react-native';
 import { LINKING_ERROR } from '../Constants';
+import type { AudioRecorderWaveformViewProps } from './AudioRecorderWaveformViewTypes';
 
 export const NativeAudioRecorderWaveformView =
   UIManager.getViewManagerConfig('AudioRecorderWaveformView') != null
-    ? requireNativeComponent('AudioRecorderWaveformView')
+    ? requireNativeComponent<AudioRecorderWaveformViewProps>(
+        'AudioRecorderWaveformView'
+      )
     : () => {
         throw new Error(LINKING_ERROR);
       };
@@ -81,6 +84,14 @@ export const stopRecorder = (viewId: number | null) =>
     viewId,
     // we are calling the 'stop' command for stop recording
     UIManager.getViewManagerConfig('AudioRecorderWaveformView').Commands.stop,
+    [viewId]
+  );
+
+export const cancelRecorder = (viewId: number | null) =>
+  UIManager.dispatchViewManagerCommand(
+    viewId,
+    // we are calling the 'stop' command for stop recording
+    UIManager.getViewManagerConfig('AudioRecorderWaveformView').Commands.cancel,
     [viewId]
   );
 

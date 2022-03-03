@@ -1,4 +1,4 @@
-import React, { forwardRef, useImperativeHandle, useRef } from 'react';
+import React, { forwardRef, useImperativeHandle } from 'react';
 import styles from './AudioRecorderWaveformViewStyles';
 import type {
   AudioRecorderWaveformViewProps,
@@ -12,8 +12,12 @@ import {
   setUpRecorder,
   startRecorder,
   stopRecorder,
+  cancelRecorder,
   NativeAudioRecorderWaveformView,
 } from './AudioRecorderWaveformViewUtils';
+import { StyleSheet, View } from 'react-native';
+
+const refView = React.createRef<View>();
 
 function CustomAudioRecorderWaveformView(
   {
@@ -39,8 +43,6 @@ function CustomAudioRecorderWaveformView(
   }: AudioRecorderWaveformViewProps,
   ref: React.Ref<AudioRecorderWaveformHandleType>
 ): React.ReactElement {
-  const refView = useRef();
-
   useImperativeHandle(ref, () => ({
     createRecorder: (config: AudioRecordConfig = {}) => {
       setUpRecorder(getViewId(refView), config);
@@ -57,12 +59,15 @@ function CustomAudioRecorderWaveformView(
     stopRecording: () => {
       stopRecorder(getViewId(refView));
     },
+    cancelRecording: () => {
+      cancelRecorder(getViewId(refView));
+    },
   }));
 
   return (
     <NativeAudioRecorderWaveformView
       ref={refView}
-      style={[styles.defaultStyle, style]}
+      style={StyleSheet.flatten([styles.defaultStyle, style])}
       progress={progress}
       maxProgress={maxProgress}
       visibleProgress={visibleProgress}
@@ -85,5 +90,6 @@ function CustomAudioRecorderWaveformView(
   );
 }
 
-export const AudioRecorderWaveformView: React.ForwardRefExoticComponent<AudioRecorderWaveformViewProps> =
-  forwardRef(CustomAudioRecorderWaveformView);
+export const AudioRecorderWaveformView = forwardRef(
+  CustomAudioRecorderWaveformView
+);
