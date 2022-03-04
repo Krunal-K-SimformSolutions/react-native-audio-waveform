@@ -49,11 +49,12 @@ class AudioRecorderWaveformViewManager: RCTViewManager {
     @objc private func handleRecorderStatusUpdate(_ notification: Notification) {
         let currentStatus = notification.userInfo![recordStateKey] as! RecordState
         DispatchQueue.main.async {
-            self.handleTimerBasedOnRecorderState(state: currentStatus)
             if let onRecorderState = self.component?.onRecorderState {
                 onRecorderState([recordStateKey: currentStatus.rawValue])
             }
         }
+        self.handleTimerBasedOnRecorderState(state: currentStatus)
+        
     }
     
     @objc private func handleRecorderError(_ notification: Notification) {
@@ -75,18 +76,23 @@ class AudioRecorderWaveformViewManager: RCTViewManager {
                 if let onFinished = self.component?.onFinished {
                     onFinished([fileKey: AudioRecorderManager.sharedInstance.currentRecordPath?.absoluteString ?? "", durationKey: self.currentTime * 1000])
                 }
-                self.resetTimer()
+                self.cleanUp()
+                
             }
             break
         case .pause, .resume:
             self.pauseTimer()
             break
         case .canceled:
-            self.resetTimer()
+            self.cleanUp()
         }
     }
     
     deinit {
+        self.cleanUp()
+    }
+    
+    func cleanUp() {
         self.resetTimer()
         NotificationCenter.default.removeObserver(self, name: .audioPlayerManagerBufferDidUpdateNotification, object: nil)
         NotificationCenter.default.removeObserver(self, name: .recorderStateNotification, object: nil)
@@ -95,15 +101,16 @@ class AudioRecorderWaveformViewManager: RCTViewManager {
         
     }
     
-    
     override static func requiresMainQueueSetup() -> Bool {
         return true
     }
     
     private func runTimer() {
-        isTimerRunning = true
-        isTimerPaused = false
-        self.timer = Timer.scheduledTimer(timeInterval: self.timeIntervals, target: self, selector: #selector(updateTimer), userInfo: nil, repeats: true)
+        DispatchQueue.main.async { [self] in
+            self.isTimerRunning = true
+            self.isTimerPaused = false
+            self.timer = Timer.scheduledTimer(timeInterval: self.timeIntervals, target: self, selector: #selector(updateTimer), userInfo: nil, repeats: true)
+        }
     }
     
     @objc func updateTimer() {
@@ -164,7 +171,7 @@ class AudioRecorderWaveformViewManager: RCTViewManager {
     
     @objc
     func cancel(_ reactTag: NSNumber, viewId: NSNumber) {
-        AudioRecorder.sharedInstance.stopRecording()
+        AudioRecorder.sharedInstance.cancelRecording()
         DispatchQueue.main.async {
             self.component?.reset()
         }
