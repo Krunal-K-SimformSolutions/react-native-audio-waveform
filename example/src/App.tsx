@@ -11,11 +11,11 @@ import AudioWaveformView, {
   AudioEncoderAndroidType,
   FFmpegBitRate,
   FFmpegSamplingRate,
-} from 'react-native-audio-waveform';
+} from 'rn-audio-waveform';
 import type {
   AudioRecorderWaveformHandleType,
   AudioPlayerWaveformHandleType
-} from 'react-native-audio-waveform';
+} from 'rn-audio-waveform';
 import styles from './AppStyles';
 
 export default function App() {
