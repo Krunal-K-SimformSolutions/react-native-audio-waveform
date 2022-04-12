@@ -16,9 +16,7 @@ import Accelerate
 class AudioRecorderManager: RCTEventEmitter {
     
     var settings: [String:Any]  {
-        let format = self.audioEngine.inputNode.outputFormat(forBus: 0)
-        let sampleRate = format.sampleRate
-        return [AVFormatIDKey: kAudioFormatLinearPCM, AVLinearPCMBitDepthKey: 16, AVLinearPCMIsFloatKey: true, AVSampleRateKey: sampleRate, AVNumberOfChannelsKey: 1] as [String : Any]
+        return self.audioEngine.inputNode.outputFormat(forBus: 0).settings
     }
     
     var audioEngine = AVAudioEngine()
@@ -118,13 +116,12 @@ class AudioRecorderManager: RCTEventEmitter {
                 }
                 
                 let inputNode = self.audioEngine.inputNode
-                
+
                 let recordingFormat: AVAudioFormat = inputNode.outputFormat(forBus: 0)
                 inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) {[weak self] (buffer, time) in
                     guard let strongSelf = self else {
                         return
                     }
-                    buffer.frameLength = buffer.frameCapacity
                     guard let channelData = buffer.floatChannelData else {
                         return
                     }
@@ -180,7 +177,6 @@ class AudioRecorderManager: RCTEventEmitter {
     }
     
     private func audioMetering(buffer:AVAudioPCMBuffer) {
-        buffer.frameLength = 2048
         let inNumberFrames:UInt = UInt(buffer.frameLength)
         if buffer.format.channelCount > 0 {
             let samples = (buffer.floatChannelData![0])
