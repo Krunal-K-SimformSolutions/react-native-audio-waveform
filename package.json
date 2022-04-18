@@ -1,6 +1,6 @@
 {
   "name": "rn-audio-waveform",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "user waveform",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
