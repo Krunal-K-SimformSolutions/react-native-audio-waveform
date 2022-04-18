@@ -23,6 +23,7 @@ export type {
   OnFinishedEvent,
   OnRecorderStateEvent,
   OnSilentDetectedEvent,
+  OnSampleRateEvent
 } from './recorder/AudioRecorderWaveformViewTypes';
 export type {
   AudioPlayerWaveformViewProps,

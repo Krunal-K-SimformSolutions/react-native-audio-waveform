@@ -31,6 +31,10 @@ export type OnRecorderStateEvent = (
   e: NativeSyntheticEvent<{ recordState: string }>
 ) => void;
 
+export type OnSampleRateEvent = (
+  e: NativeSyntheticEvent<{ sampleRate: number }>
+) => void;
+
 export type OnSilentDetectedEvent = (
   e: NativeSyntheticEvent<{ time: number }>
 ) => void;
@@ -58,6 +62,7 @@ export type AudioRecorderWaveformViewProps = React.ComponentPropsWithRef<
     onProgress: OnProgressEvent;
     onRecorderState: OnRecorderStateEvent;
     onSilentDetected: OnSilentDetectedEvent;
+    onSampleRate: OnSampleRateEvent;
   }>;
 
 export type AudioRecorderWaveformHandleType = Required<{

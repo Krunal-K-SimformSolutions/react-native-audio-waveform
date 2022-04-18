@@ -3,7 +3,7 @@ import AVKit
 
 @objc(AudioRecorderWaveformViewManager)
 class AudioRecorderWaveformViewManager: RCTViewManager {
-    var component: AudioRecorderWaveformView? = nil
+    var component: AudioRecorderWaveformView? = AudioRecorderWaveformView()
     var timer: Timer?
     var currentTime = 0.0
     var timeIntervals = 0.5
@@ -11,7 +11,7 @@ class AudioRecorderWaveformViewManager: RCTViewManager {
     var isTimerPaused = false
     
     override func view() -> (AudioRecorderWaveformView) {
-        self.component = AudioRecorderWaveformView()
+        //        self.component = AudioRecorderWaveformView()
         NotificationCenter.default.addObserver(self, selector: #selector(didBuffersUpdate),
                                                name: .audioPlayerManagerBufferDidUpdateNotification, object: nil)
         
@@ -20,6 +20,8 @@ class AudioRecorderWaveformViewManager: RCTViewManager {
         
         NotificationCenter.default.addObserver(self, selector: #selector(handleRecorderError),
                                                name: .errorNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(handleSampleRateData),
+                                               name: .sampleRate, object: nil)
         
         return self.component!
     }
@@ -64,6 +66,19 @@ class AudioRecorderWaveformViewManager: RCTViewManager {
                 onError([errorKey: currentStatus])
             }
         }
+    }
+    
+    @objc private func handleSampleRateData(_ notification: Notification) {
+        let currentStatus = notification.userInfo![sampleRateKey] as! Double
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            DispatchQueue.main.async {
+                if let onSampleRate = self.component?.onSampleRate {
+                    onSampleRate([sampleRateKey: NSNumber.init(value: currentStatus)])
+                }
+            }
+            
+        }
+        
     }
     
     func handleTimerBasedOnRecorderState(state: RecordState) {
@@ -143,6 +158,7 @@ class AudioRecorderWaveformViewManager: RCTViewManager {
     func create(_ reactTag: NSNumber, viewId: NSNumber, sourceMode: NSString, isFFmpegMode: NSNumber, withDebug: NSNumber, audioSourceAndroid: NSNumber, audioEncoderAndroid: NSNumber, frequencyAndroid: NSNumber, bitRate: NSNumber, samplingRate: NSNumber, mono: NSNumber, subscriptionDurationInMilliseconds: NSNumber) {
         self.timeIntervals = Double(truncating: subscriptionDurationInMilliseconds)/1000
         AudioRecorder.sharedInstance.inits(sourceMode:sourceMode, isFFmpegMode:isFFmpegMode, withDebug:withDebug, audioSourceAndroid:audioSourceAndroid, audioEncoderAndroid:audioEncoderAndroid, frequencyAndroid:frequencyAndroid, bitRate:bitRate, samplingRate:samplingRate, mono:mono)
+        print("Component == \(self.component)")
     }
     
     @objc
@@ -187,4 +203,5 @@ class AudioRecorderWaveformView : WaveformSeekBar {
     @objc var onProgress: RCTDirectEventBlock?
     @objc var onRecorderState: RCTDirectEventBlock?
     @objc var onSilentDetected: RCTDirectEventBlock?
+    @objc var onSampleRate: RCTDirectEventBlock?
 }

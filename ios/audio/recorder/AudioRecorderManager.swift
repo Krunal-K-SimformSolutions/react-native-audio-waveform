@@ -15,9 +15,10 @@ import Accelerate
 @objc(AudioRecorderManager)
 class AudioRecorderManager: RCTEventEmitter {
     
-    var settings: [String:Any]  {
-        return self.audioEngine.inputNode.outputFormat(forBus: 0).settings
-    }
+    var settings: [String:Any] = [:]
+//    {
+//        return self.audioEngine.inputNode.outputFormat(forBus: 0).settings
+//    }
     
     var audioEngine = AVAudioEngine()
     private var averagePowerForChannel0: Float = 0
@@ -38,7 +39,10 @@ class AudioRecorderManager: RCTEventEmitter {
     
     func saveAudioEngineSettings(sampleRate: Double, channel: Int) {
         //TODO: Make it dynamic later
-        //        settings = [AVFormatIDKey: kAudioFormatLinearPCM, AVLinearPCMBitDepthKey: 16, AVLinearPCMIsFloatKey: true, AVSampleRateKey: sampleRate, AVNumberOfChannelsKey: channel]
+        let samplerate = self.audioEngine.inputNode.outputFormat(forBus: 0).sampleRate
+                settings = [AVFormatIDKey: kAudioFormatLinearPCM, AVLinearPCMBitDepthKey: 16, AVLinearPCMIsFloatKey: true, AVSampleRateKey: samplerate, AVNumberOfChannelsKey: channel]
+        NotificationCenter.default.post(name: .sampleRate, object: self, userInfo: [sampleRateKey: samplerate])
+        
     }
     
     func askPermission(with completion: @escaping (Bool?, Error?) -> Void) {
@@ -117,7 +121,7 @@ class AudioRecorderManager: RCTEventEmitter {
                 
                 let inputNode = self.audioEngine.inputNode
 
-                let recordingFormat: AVAudioFormat = inputNode.outputFormat(forBus: 0)
+                let recordingFormat: AVAudioFormat = self.format()! //inputNode.outputFormat(forBus: 0)
                 inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) {[weak self] (buffer, time) in
                     guard let strongSelf = self else {
                         return
@@ -152,6 +156,7 @@ class AudioRecorderManager: RCTEventEmitter {
                 do {
                     self.audioEngine.prepare()
                     try self.audioEngine.start()
+                    
                     NotificationCenter.default.post(name: .recorderStateNotification, object: self, userInfo: [recordStateKey: isResume ? RecordState.resume : RecordState.start])
                 } catch let error as NSError {
                     NotificationCenter.default.post(name: .errorNotification, object: self, userInfo: [errorKey: error.localizedDescription])

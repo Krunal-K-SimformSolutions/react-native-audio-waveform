@@ -40,6 +40,7 @@ function CustomAudioRecorderWaveformView(
     onProgress,
     onRecorderState,
     onSilentDetected,
+    onSampleRate
   }: AudioRecorderWaveformViewProps,
   ref: React.Ref<AudioRecorderWaveformHandleType>
 ): React.ReactElement {
@@ -86,6 +87,7 @@ function CustomAudioRecorderWaveformView(
       onProgress={onProgress}
       onRecorderState={onRecorderState}
       onSilentDetected={onSilentDetected}
+      onSampleRate={onSampleRate}
     />
   );
 }

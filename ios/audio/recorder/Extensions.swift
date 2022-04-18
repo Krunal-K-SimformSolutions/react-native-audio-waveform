@@ -19,7 +19,7 @@ enum RecordState : String {
 //Notification Center
 let bufferUserInfoKey = "buffer"
 let audioPercentageUserInfoKey = "percentage"
-
+let sampleRateKey = "sampleRate"
 //Event Key
 let timeKey = "time"
 let fileKey = "file"
@@ -84,6 +84,7 @@ extension Notification.Name {
     static let recorderStateNotification = Notification.Name("recorderStateNotification")
     static let audioPlayerManagerBufferDidUpdateNotification = Notification.Name("audioPlayerManagerBufferDidUpdateNotification")
     static let errorNotification = Notification.Name("errorNotification")
+    static let sampleRate = Notification.Name("sampleRate")
     static let audioRecorderManagerMeteringLevelDidUpdateNotification2 = Notification.Name("AudioRecorderManagerMeteringLevelDidUpdateNotification2")
 }
 

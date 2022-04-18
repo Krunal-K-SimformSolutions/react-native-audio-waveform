@@ -22,6 +22,7 @@ RCT_EXPORT_VIEW_PROPERTY(onFinished, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onProgress, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onRecorderState, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onSilentDetected, RCTDirectEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onSampleRate, RCTDirectEventBlock)
 
 RCT_EXTERN_METHOD(create:(nonnull NSNumber *)reactTag viewId:(nonnull NSNumber *)viewId sourceMode:(nonnull NSString *)sourceMode isFFmpegMode:(nonnull NSNumber *)isFFmpegMode withDebug:(nonnull NSNumber *)withDebug audioSourceAndroid:(nonnull NSNumber *)audioSourceAndroid audioEncoderAndroid:(nonnull NSNumber *)audioEncoderAndroid frequencyAndroid:(nonnull NSNumber *)frequencyAndroid bitRate:(nonnull NSNumber *)bitRate samplingRate:(nonnull NSNumber *)samplingRate mono:(nonnull NSNumber *)mono subscriptionDurationInMilliseconds:(nonnull NSNumber *)subscriptionDurationInMilliseconds)
 
