@@ -15,10 +15,10 @@ import Accelerate
 @objc(AudioRecorderManager)
 class AudioRecorderManager: RCTEventEmitter {
     
-    var settings: [String:Any] = [:]
-//    {
-//        return self.audioEngine.inputNode.outputFormat(forBus: 0).settings
-//    }
+    var settings: [String:Any]
+    {
+        return self.audioEngine.inputNode.outputFormat(forBus: 0).settings
+    }
     
     var audioEngine = AVAudioEngine()
     private var averagePowerForChannel0: Float = 0
@@ -40,7 +40,7 @@ class AudioRecorderManager: RCTEventEmitter {
     func saveAudioEngineSettings(sampleRate: Double, channel: Int) {
         //TODO: Make it dynamic later
         let samplerate = self.audioEngine.inputNode.outputFormat(forBus: 0).sampleRate
-                settings = [AVFormatIDKey: kAudioFormatLinearPCM, AVLinearPCMBitDepthKey: 16, AVLinearPCMIsFloatKey: true, AVSampleRateKey: samplerate, AVNumberOfChannelsKey: channel]
+//                settings = [AVFormatIDKey: kAudioFormatLinearPCM, AVLinearPCMBitDepthKey: 16, AVLinearPCMIsFloatKey: true, AVSampleRateKey: samplerate, AVNumberOfChannelsKey: channel]
         NotificationCenter.default.post(name: .sampleRate, object: self, userInfo: [sampleRateKey: samplerate])
         
     }
@@ -121,7 +121,7 @@ class AudioRecorderManager: RCTEventEmitter {
                 
                 let inputNode = self.audioEngine.inputNode
 
-                let recordingFormat: AVAudioFormat = self.format()! //inputNode.outputFormat(forBus: 0)
+                let recordingFormat: AVAudioFormat = self.format()!
                 inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) {[weak self] (buffer, time) in
                     guard let strongSelf = self else {
                         return
