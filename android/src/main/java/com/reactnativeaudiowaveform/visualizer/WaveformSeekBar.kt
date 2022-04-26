@@ -232,9 +232,12 @@ open class WaveformSeekBar @JvmOverloads constructor(
         super.onSizeChanged(w, h, oldw, oldh)
         mCanvasWidth = w
         mCanvasHeight = h
-        progressBitmap =
-          Bitmap.createBitmap(getAvailableWidth(), mCanvasHeight, Bitmap.Config.ARGB_8888)
-        progressShader = BitmapShader(progressBitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
+        try {
+          progressBitmap =
+            Bitmap.createBitmap(getAvailableWidth(), mCanvasHeight, Bitmap.Config.ARGB_8888)
+          progressShader = BitmapShader(progressBitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
+        } catch(e: IllegalArgumentException) {
+        }
       }
     }
 
